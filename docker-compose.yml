@@ -1,0 +1,10 @@
+version: '3.0'
+
+services:
+
+  graph:
+    build:
+      context: .
+      dockerfile: Dockerfile-fragnet
+    image: informaticsmatters/neo4j:${IMAGE_TAG:-3.5.2}
+    container_name: neo4j
