@@ -33,6 +33,7 @@ with the following docker command: -
         -e NEO4J_dbms_directories_data=/graph \
         -e NEO4J_dbms_directories_logs=/graph-logs \
         -e IMPORT_DIRECTORY=/data-import \
+        -e IMPORT_TO=graph \
         -e EXTENSION_SCRIPT=/data-import/load-neo4j.sh \
         informaticsmatters/neo4j:3.5.2
         
