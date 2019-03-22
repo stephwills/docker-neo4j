@@ -174,7 +174,11 @@ for i in $( set | grep ^NEO4J_ | awk -F'=' '{print $1}' | sort -rn ); do
         fi
     fi
 done
-[ -f "${EXTENSION_SCRIPT:-}" ] && . ${EXTENSION_SCRIPT}
+echo "EXTENSION_SCRIPT=${EXTENSION_SCRIPT}"
+if [ -f "${EXTENSION_SCRIPT:-}" ]; then
+  echo "Running ${EXTENSION_SCRIPT}..."
+  . ${EXTENSION_SCRIPT}
+fi
 # Chown the data dir now that (maybe) an initial password has been
 # set (this is a file in the data dir)
 if [[ "$(id -u)" = "0" ]]; then
