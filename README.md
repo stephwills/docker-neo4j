@@ -6,4 +6,9 @@ To build and push...
     $ docker-compose build
     $ docker-compose push
 
+With a non-default tag...
+
+    $ IMAGE_TAG=test docker-compose build
+    $ IMAGE_TAG=test docker-compose push
+
 ---
