@@ -5,7 +5,7 @@ services:
   graph:
     build:
       context: .
-      dockerfile: Dockerfile-fragnet
+      dockerfile: Dockerfile
       args:
         from_tag: ${IMAGE_TAG:-3.5.0}
     image: informaticsmatters/neo4j:3.5.0
