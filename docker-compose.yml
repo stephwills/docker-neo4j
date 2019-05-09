@@ -5,8 +5,5 @@ services:
   graph:
     build:
       context: .
-      dockerfile: Dockerfile
-      args:
-        from_tag: ${FROM_TAG:-3.5.5}
     image: informaticsmatters/neo4j:3.5
     container_name: neo4j
