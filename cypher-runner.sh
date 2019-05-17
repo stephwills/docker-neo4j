@@ -20,7 +20,7 @@ if [ -f $SCRIPT ]
 then
 
     echo "($ME) $(date) Processing cypher.script. Pre-neo4j pause..."
-    sleep 20
+    sleep 14
 
     echo "($ME) $(date) Trying cypher.script..."
     until cat $SCRIPT | /var/lib/neo4j/bin/cypher-shell

@@ -145,14 +145,17 @@ if [ "${cmd}" == "neo4j" ]; then
         echo "...NEO4J_AUTH is none"
         NEO4J_dbms_security_auth__enabled=false
     elif [[ "${NEO4J_AUTH:-}" == neo4j/* ]]; then
-        password="${NEO4J_AUTH#neo4j/}"
-        echo "...NEO4J_AUTH password is ${password}"
-        if [ "${password}" == "neo4j" ]; then
+        # USERNAME and PASSWORD are required for cypher-shell commands
+        # that may be used in our cypher-runner script (executed later)
+        export NEO4J_USERNAME=neo4j
+        export NEO4J_PASSWORD="${NEO4J_AUTH#neo4j/}"
+        echo "...NEO4J_AUTH password is ${NEO4J_PASSWORD}"
+        if [ "${NEO4J_PASSWORD}" == "neo4j" ]; then
             echo >&2 "Invalid value for password. It cannot be 'neo4j', which is the default."
             exit 1
         fi
         # Will exit with error if users already exist (and print a message explaining that)
-        bin/neo4j-admin set-initial-password "${password}" || true
+        bin/neo4j-admin set-initial-password "${NEO4J_PASSWORD}" || true
     elif [ -n "${NEO4J_AUTH:-}" ]; then
         echo >&2 "Invalid value for NEO4J_AUTH: '${NEO4J_AUTH}'"
         exit 1
