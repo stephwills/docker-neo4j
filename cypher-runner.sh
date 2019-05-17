@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 ME=cypher-runner.sh
-SCRIPT=/cypher-runner/cypher.script
+SCRIPT=/cypher-script/cypher.script
 
 echo "($ME) $(date) Starting..."
 
