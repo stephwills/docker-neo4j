@@ -184,15 +184,20 @@ for i in $( set | grep ^NEO4J_ | awk -F'=' '{print $1}' | sort -rn ); do
 done
 echo "EXTENSION_SCRIPT=${EXTENSION_SCRIPT}"
 if [ -f "${EXTENSION_SCRIPT:-}" ]; then
-  echo "Running ${EXTENSION_SCRIPT}..."
+  echo "(begin) ${EXTENSION_SCRIPT}"
   . ${EXTENSION_SCRIPT}
+  echo "(end) ${EXTENSION_SCRIPT}"
 fi
 # Chown the data dir now that (maybe) an initial password has been
 # set (this is a file in the data dir)
 if [[ "$(id -u)" = "0" ]]; then
-  chmod -R 755 ${NEO4J_dbms_directories_data}
-  chown -R "${userid}":"${groupid}" ${NEO4J_dbms_directories_data}
-  rm -f ${NEO4J_dbms_directories_logs}/* | true
+  echo "(chmod/chown) ${NEO4J_dbms_directories_data}..."
+  echo "(to userid=${userid} groupid=${groupid})"
+  chmod -R 755 ${NEO4J_dbms_directories_data} || true
+  chown -R "${userid}":"${groupid}" ${NEO4J_dbms_directories_data} || true
+  echo "(removing logs)..."
+  rm ${NEO4J_dbms_directories_logs}/* || true
+  echo "(done)"
 fi
 # Run our background cypher-runner...
 /cypher-runner/cypher-runner.sh &
