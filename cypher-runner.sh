@@ -22,13 +22,14 @@ LEGACY_SCRIPT=/cypher-script/cypher.script
 ONCE_SCRIPT=/cypher-script/cypher-script.once
 ALWAYS_SCRIPT=/cypher-script/cypher-script.always
 # The 'we have executed' file. We 'touch' this at the end of this script.
-# If present (in the IMPORT_DIR) this prevents us from running the '.once' script.
+# If present (in the IMPORT_DIRECTORY) this prevents us from running the
+# '.once' script.
 # The import directory variable may not exist - if it doesn't
 # then will end up running all the scripts on each container start
-# (because we ouly 'touch' this file if the IMPORT_DIR exists).
-EXECUTED_FILE="$IMPORT_DIR"/cypher-runner.executed
+# (because we ouly 'touch' this file if the IMPORT_DIRECTORY exists).
+EXECUTED_FILE="$IMPORT_DIRECTORY"/cypher-runner.executed
 
-echo "($ME) $(date) Starting..."
+echo "($ME) $(date) Starting (IMPORT_DIRECTORY=$IMPORT_DIRECTORY)..."
 
 if [ -z "$NEO4J_USERNAME" ]
 then
@@ -84,10 +85,10 @@ else
     echo "($ME) $(date) No .always script."
 fi
 
-# Touch a 'cypher-runner.executed' file (if the IMPORT_DIR exists)
+# Touch a 'cypher-runner.executed' file (if the IMPORT_DIRECTORY exists)
 # This is used to prevent us from running the '.once' script on re-boot
-# but relies on the IMPORT_DIR beign perseisted between reboots.
-if [ -n "$IMPORT_DIR" ]; then
+# but relies on the IMPORT_DIRECTORY being perseisted between reboots.
+if [ -n "$IMPORT_DIRECTORY" ]; then
   echo "($ME) $(date) Touching $EXECUTED..."
   touch "$EXECUTED"
 fi
