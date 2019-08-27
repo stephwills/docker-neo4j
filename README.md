@@ -46,21 +46,24 @@ and runs in the background until the provided cypher commands have been
 executed.
 
 All you need to do to run your one early cypher commands
-is provide them in the file `/cypher-runner/cypher.script` and provide
+is provide them in the either a `/cypher-runner/cypher-script.once`
+or `/cypher-runner/cypher-script.always` file and provide
 the neo4j credentials.
 
-An example script may contain the following index and cache-warm-up commands: -
+An example `.once` script may contain the following index commands: -
 
     CREATE INDEX ON :F2(smiles);
     CREATE INDEX ON :VENDOR(cmpd_id);
-    CALL apoc.warmup.run(true, true, true);
     
-If this script exists as `/cypher-runner/cypher.script`, and the environment
-variables `NEO4J_USERNAME` and `NEO4J_PASSWORD` are defined, the script
-will be run in the background automatically.
+An example `.always` script may contain the following cache-warm-up commands: -
+
+    CALL apoc.warmup.run(true, true, true);
+
+If the environment variables `NEO4J_USERNAME` and `NEO4J_PASSWORD` are defined,
+the scripts will be run in the background automatically.
 
 >   The cypher runner waits for a short period of time after neo4j has been
-    given an opportunity to start (about 20 seconds) before the first run of
+    given an opportunity to start (about 15 seconds) before the first run of
     the script is attempted.
 
 ---
