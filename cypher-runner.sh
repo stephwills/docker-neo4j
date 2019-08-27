@@ -11,7 +11,7 @@
 # ONCE or ALWAYS scripts. LEGACY is supported for backwards compatibility.
 #
 # Determing whether this is the first execution relies on a persistent volume
-# and here we use the IMPORT_DIR. If it is not defined or the volume it
+# and here we use the IMPORT_DIRECTORY. If it is not defined or the volume it
 # points to is not persisted then all scripts will always be executed.
 
 ME=cypher-runner.sh
@@ -89,8 +89,8 @@ fi
 # This is used to prevent us from running the '.once' script on re-boot
 # but relies on the IMPORT_DIRECTORY being perseisted between reboots.
 if [ -n "$IMPORT_DIRECTORY" ]; then
-  echo "($ME) $(date) Touching $EXECUTED..."
-  touch "$EXECUTED"
+  echo "($ME) $(date) Touching $EXECUTED_FILE..."
+  touch "$EXECUTED_FILE"
 fi
 
 echo "($ME) $(date) Finished."
