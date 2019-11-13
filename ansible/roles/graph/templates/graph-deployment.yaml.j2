@@ -45,6 +45,13 @@ spec:
           value: graph
         - name: EXTENSION_SCRIPT
           value: /data/data-loader/load-neo4j.sh
+        resources:
+          limits:
+            cpu: 4000m
+            memory: {{ graph_mem_request_g }}Gi
+          requests:
+            cpu: 1000m
+            memory: {{ graph_mem_request_g }}Gi
         volumeMounts:
         - mountPath: /data
           name: graph-volume

@@ -28,6 +28,7 @@ graph_loader_tag: '3.5'
 # Graph image memory sizing...
 graph_pagecache_size_g: 8
 graph_heap_g: 8
+graph_mem_request_g: 24
 
 # Timeout for loader and graph pod timeouts...
 graph_loader_pod_ready_timeout: 600
