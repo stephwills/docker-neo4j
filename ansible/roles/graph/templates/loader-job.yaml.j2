@@ -27,6 +27,8 @@ spec:
           value: {{ graph_bucket_path }}
         - name: SYNC_PATH
           value: data-loader
+        - name: GRAPH_WIPE
+          value: "{{ graph_wipe }}"
         resources:
           limits:
             cpu: 1000m

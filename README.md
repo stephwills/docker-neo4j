@@ -66,4 +66,10 @@ the scripts will be run in the background automatically.
     given an opportunity to start (about 15 seconds) before the first run of
     the script is attempted.
 
+## The ansible role and playbook
+The Ansible role and corresponding playbook has been written to simplify
+deployment of the neo4j image along with an associated AWS S3-based graph.
+
+The role deploys an S3-based loader prior to spinning-up the neo4j instance. 
+
 ---
