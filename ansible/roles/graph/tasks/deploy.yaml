@@ -63,7 +63,8 @@
     definition: "{{ lookup('template', item)|from_yaml }}"
   loop:
   - graph-deployment.yaml.j2
-  - graph-service.yaml.j2
+  - graph-http-service.yaml.j2
+  - graph-bolt-service.yaml.j2
 
 - name: Wait for Graph
   shell: >-
