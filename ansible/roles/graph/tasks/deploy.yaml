@@ -10,4 +10,4 @@
   k8s:
     definition: "{{ lookup('template', item)|from_yaml }}"
   loop:
-  - project.yml.j2
+  - project.yaml.j2
