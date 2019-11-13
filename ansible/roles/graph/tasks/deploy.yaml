@@ -11,7 +11,7 @@
   register: projects_result
   changed_when: False
 
-- name: Assert project existance
+- name: Assert project existance ({{ graph_project }})
   assert:
     that: projects_result.stdout|regex_search('^%s' % graph_project, multiline=True)
 
@@ -48,7 +48,9 @@
   - loader-job.yaml.j2
 
 - name: Wait for Loader job
-  shell: oc describe jobs/graph-loader | grep '1 Succeeded'
+  shell: >-
+    oc describe jobs/graph-loader --namespace={{ graph_project }}
+    | grep '1 Succeeded'
   delay: 20
   retries: "{{ (pod_ready_timeout | int / 20) | int }}"
   register: result
