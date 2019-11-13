@@ -8,3 +8,5 @@
   - secrets.yaml.j2
   - loader-job.yaml.j2
   - graph-deployment.yaml.j2
+  - graph-service.yaml.j2
+  - graph-route.yaml.j2

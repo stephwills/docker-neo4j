@@ -76,3 +76,10 @@
   loop:
   - graph-pod
   changed_when: false
+
+- name: Deploy application route
+  k8s:
+    definition: "{{ lookup('template', item)|from_yaml }}"
+  loop:
+  - graph-route.yaml.j2
+  when: graph_enable_route|bool
