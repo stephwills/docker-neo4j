@@ -1,0 +1,16 @@
+---
+
+graph_project: graph
+graph_project_display_name: The neo4j Graph
+
+graph_deploy: yes
+graph_deploy_route: yes
+
+graph_pvc: SetMe
+
+graph_bucket: SetMe
+graph_bucket_path: SetMe
+graph_bucket_cypher_script: SetMe
+
+graph_image: informaticsmatters/neo4j
+graph_tag: '3.5'

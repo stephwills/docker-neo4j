@@ -1,0 +1,13 @@
+---
+
+# Create the project
+
+- name: Login (user)
+  command: oc login https://{{ okd_master_hostname }} -u {{ okd_user }} -p {{ okd_user_password }}
+  changed_when: False
+
+- name: Deploy Project
+  k8s:
+    definition: "{{ lookup('template', item)|from_yaml }}"
+  loop:
+  - project.yml.j2

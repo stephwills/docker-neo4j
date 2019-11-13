@@ -1,0 +1,6 @@
+---
+
+- hosts: cli-node
+  tasks:
+  - include_role:
+      name: graph
