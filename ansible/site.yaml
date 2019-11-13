@@ -1,5 +1,9 @@
 ---
 
+# The deployment relies on the presence
+# of a PVC for use as the data volume.
+# The PVC (and its project) are expected to already exist.
+
 - hosts: cli_node
   tasks:
   - include_role:

@@ -1,13 +1,55 @@
 ---
 
-# Create the project
+# The Project and PVC are expected to exist...
 
 - name: Login (user)
   command: oc login https://{{ okd_master_hostname }} -u {{ okd_user }} -p {{ okd_user_password }}
   changed_when: False
 
-- name: Deploy Project
+- name: Get Projects
+  command: oc get projects
+  register: projects_result
+  changed_when: False
+
+- name: Assert project existance
+  assert:
+    that: projects_result.stdout|regex_search('^%s' % graph_project, multiline=True)
+
+- name: Get PVCs
+  command: oc get pvc --namespace={{ graph_project }}
+  register: pvc_result
+  changed_when: False
+
+- name: Assert PVC existance
+  assert:
+    that: pvc_result.stdout|regex_search('^%s' % graph_pvc, multiline=True)
+
+# Deploy secrets
+
+- name: Deploy secrets
   k8s:
     definition: "{{ lookup('template', item)|from_yaml }}"
   loop:
-  - project.yaml.j2
+  - secrets.yaml.j2
+
+# Deploy the loader...
+
+- name: Remove pre-existing loader
+  k8s:
+    definition: "{{ lookup('template', item)|from_yaml }}"
+    state: absent
+  loop:
+  - loader-job.yaml.j2
+
+- name: Deploy Loader job
+  k8s:
+    definition: "{{ lookup('template', item)|from_yaml }}"
+  loop:
+  - loader-job.yaml.j2
+
+- name: Wait for Loader job
+  shell: oc describe jobs/graph-loader | grep '1 Succeeded'
+  delay: 20
+  retries: "{{ (pod_ready_timeout | int / 20) | int }}"
+  register: result
+  until: result.rc == 0

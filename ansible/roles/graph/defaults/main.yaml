@@ -1,16 +1,23 @@
 ---
 
 graph_project: graph
-graph_project_display_name: The neo4j Graph
+graph_pvc: graph-pvc
 
 graph_deploy: yes
 graph_deploy_route: yes
 
-graph_pvc: SetMe
-
-graph_bucket: SetMe
-graph_bucket_path: SetMe
-graph_bucket_cypher_script: SetMe
+graph_bucket: im-fragnet
+graph_bucket_path: build/vendor/toxcast/2019-10-24/build-1
+graph_bucket_cypher_script: cypher.script
 
 graph_image: informaticsmatters/neo4j
 graph_tag: '3.5'
+graph_loader_image: informaticsmatters/neo4j-s3-loader
+graph_loader_tag: '3.5'
+
+pod_ready_timeout: 600
+
+# Picked up from the environment...
+
+aws_access_key_id: "{{ lookup('env', 'AWS_ACCESS_KEY_ID') }}"
+aws_secret_access_key: "{{ lookup('env', 'AWS_SECRET_ACCESS_KEY') }}"

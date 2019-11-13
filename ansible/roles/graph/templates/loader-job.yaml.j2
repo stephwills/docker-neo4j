@@ -1,0 +1,37 @@
+---
+kind: Job
+apiVersion: batch/v1
+metadata:
+  name: graph-loader
+  namespace: {{ graph_project }}
+spec:
+  template:
+    spec:
+      containers:
+      - name: graph-loader
+        image: {{ graph_loader_image }}:{{ graph_loader_tag }}
+        env:
+        - name: AWS_ACCESS_KEY_ID
+          valueFrom:
+            secretKeyRef:
+              name: graph-secrets
+              key: aws_access_key_id
+        - name: AWS_SECRET_ACCESS_KEY
+          valueFrom:
+            secretKeyRef:
+              name: graph-secrets
+              key: aws_secret_access_key
+        - name: AWS_BUCKET
+          value: {{ graph_bucket }}
+        - name: AWS_BUCKET_PATH
+          value: {{ graph_bucket_path }}
+        - name: SYNC_PATH
+          value: data-loader
+        volumeMounts:
+        - mountPath: /data
+          name: graph-volume
+      volumes:
+      - name: graph-volume
+        persistentVolumeClaim:
+          claimName: {{ graph_pvc }}
+      restartPolicy: Never

@@ -1,0 +1,53 @@
+---
+kind: Deployment
+apiVersion: apps/v1
+metadata:
+  name: graph
+  namespace: {{ graph_project }}
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      name: graph
+  template:
+    metadata:
+      labels:
+        name: graph
+    spec:
+      serviceAccountName: {{ fs_sa }}
+      containers:
+      - name: graph
+        image: {{ graph_image }}:{{ graph_tag }}
+        ports:
+        - containerPort: 7474
+        - containerPort: 7687
+        env:
+        - name: NEO4J_AUTH
+          value: neo4j/{{ neo4j_password }}
+        - name: NEO4J_dbms_memory_pagecache_size
+          value: {{ graph_pagecache_size_g }}G
+        - name: NEO4J_dbms_memory_heap_initial__size
+          value: {{ graph_heap_g }}G
+        - name: NEO4J_dbms_memory_heap_max__size
+          value: {{ graph_heap_g }}G
+        - name: NEO4J_dbms_directories_data
+          value: /data/data
+        - name: NEO4J_dbms_directories_logs
+          value: /data/logs
+        - name: NEO4J_dbms_connector_bolt_advertised__address
+          value: /logs:7687
+        - name: NEO4J_EDITION
+          value: community
+        - name: IMPORT_DIRECTORY
+          value: /data/data-loader
+        - name: IMPORT_TO
+          value: graph
+        - name: EXTENSION_SCRIPT
+          value: /data/data-loader/load-neo4j.sh
+        volumeMounts:
+        - mountPath: /data
+          name: graph-volume
+      volumes:
+      - name: graph-volume
+        persistentVolumeClaim:
+          claimName: {{ graph_pvc }}
