@@ -10,6 +10,7 @@ spec:
       containers:
       - name: graph-loader
         image: {{ graph_loader_image }}:{{ graph_loader_tag }}
+        imagePullPolicy: Always
         env:
         - name: AWS_ACCESS_KEY_ID
           valueFrom:
