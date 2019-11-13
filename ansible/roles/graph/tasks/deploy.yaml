@@ -83,5 +83,4 @@
     definition: "{{ lookup('template', item)|from_yaml }}"
   loop:
   - graph-http-route.yaml.j2
-  - graph-bolt-route.yaml.j2
   when: graph_enable_route|bool

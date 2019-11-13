@@ -3,14 +3,13 @@
 # Deploy (set to 'no' to un-deploy)
 graph_deploy: yes
 
-
 # The project and PVC.
 # Both are required to exist
 graph_project: graph
 graph_pvc: graph
 
 # Do we want an external route to the graph?
-graph_enable_route: yes
+graph_enable_route: no
 graph_enable_acme: 'False'
 
 # The origin of the graph data.
