@@ -7,3 +7,10 @@ services:
       context: .
     image: informaticsmatters/neo4j:3.5
     container_name: neo4j
+
+  graph-loader:
+    build:
+      context: .
+      dockerfile: Dockerfile-s3-loader
+    image: informaticsmatters/neo4j-s3-loader:3.5
+    container_name: neo4j-s3-loader
