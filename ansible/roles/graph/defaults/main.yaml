@@ -1,7 +1,7 @@
 ---
 
 graph_project: graph
-graph_pvc: graph-pvc
+graph_pvc: graph
 
 graph_deploy: yes
 graph_deploy_route: yes
