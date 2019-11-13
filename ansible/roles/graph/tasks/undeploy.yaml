@@ -10,4 +10,5 @@
   - graph-deployment.yaml.j2
   - graph-http-service.yaml.j2
   - graph-bolt-service.yaml.j2
-  - graph-route.yaml.j2
+  - graph-http-route.yaml.j2
+  - graph-bolt-route.yaml.j2
