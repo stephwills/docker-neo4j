@@ -35,8 +35,8 @@ spec:
           value: /data/data
         - name: NEO4J_dbms_directories_logs
           value: /data/logs
-        - name: NEO4J_dbms_connector_bolt_advertised__address
-          value: 'graph-bolt.{{ okd_route_basename }}:7687'
+        - name: NEO4J_dbms_connector_bolt_address
+          value: '0.0.0.0:7687'
         - name: NEO4J_EDITION
           value: community
         - name: IMPORT_DIRECTORY
