@@ -27,6 +27,13 @@ spec:
           value: {{ graph_bucket_path }}
         - name: SYNC_PATH
           value: data-loader
+        resources:
+          limits:
+            cpu: 1000m
+            memory: 1Gi
+          requests:
+            cpu: 1000m
+            memory: 1Gi
         volumeMounts:
         - mountPath: /data
           name: graph-volume
