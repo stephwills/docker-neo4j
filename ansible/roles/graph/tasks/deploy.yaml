@@ -66,7 +66,9 @@
   - graph-service.yaml.j2
 
 - name: Wait for Graph
-  shell: oc get po | grep {{ item }} | grep -v deploy | grep 1/1 > /dev/null
+  shell: >-
+    oc get po --namespace={{ graph_project }}
+    | grep {{ item }} | grep -v deploy | grep 1/1 > /dev/null
   delay: 60
   retries: "{{ (graph_pod_ready_timeout|int / 60)|int }}"
   register: result
