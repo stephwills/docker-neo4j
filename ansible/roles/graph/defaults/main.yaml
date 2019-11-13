@@ -8,7 +8,6 @@ graph_deploy_route: yes
 
 graph_bucket: im-fragnet
 graph_bucket_path: build/vendor/toxcast/2019-10-24/build-1
-graph_bucket_cypher_script: cypher.script
 
 graph_image: informaticsmatters/neo4j
 graph_tag: '3.5'
@@ -18,7 +17,8 @@ graph_loader_tag: '3.5'
 graph_pagecache_size_g: 8
 graph_heap_g: 8
 
-pod_ready_timeout: 600
+graph_pod_ready_timeout: 1800
+graph_loader_pod_ready_timeout: 600
 
 # Picked up from the environment...
 

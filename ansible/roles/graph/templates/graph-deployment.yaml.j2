@@ -2,24 +2,26 @@
 kind: Deployment
 apiVersion: apps/v1
 metadata:
-  name: graph
+  name: graph-pod
   namespace: {{ graph_project }}
 spec:
   replicas: 1
   selector:
     matchLabels:
-      name: graph
+      name: graph-pod
   template:
     metadata:
       labels:
-        name: graph
+        name: graph-pod
     spec:
       containers:
-      - name: graph
+      - name: graph-pod
         image: {{ graph_image }}:{{ graph_tag }}
         ports:
-        - containerPort: 7474
-        - containerPort: 7687
+        - name: http
+          containerPort: 7474
+        - name: bolt:
+          containerPort: 7687
         env:
         - name: NEO4J_AUTH
           value: neo4j/{{ neo4j_password|default('neo4j') }}
@@ -34,7 +36,7 @@ spec:
         - name: NEO4J_dbms_directories_logs
           value: /data/logs
         - name: NEO4J_dbms_connector_bolt_advertised__address
-          value: /logs:7687
+          value: graph.graph.svc:7687
         - name: NEO4J_EDITION
           value: community
         - name: IMPORT_DIRECTORY

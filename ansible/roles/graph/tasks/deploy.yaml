@@ -34,24 +34,43 @@
 
 # Deploy the loader...
 
-- name: Remove pre-existing loader
+- name: Remove pre-existing loader (Job)
   k8s:
     definition: "{{ lookup('template', item)|from_yaml }}"
     state: absent
   loop:
   - loader-job.yaml.j2
 
-- name: Deploy Loader job
+- name: Deploy Loader (Job)
   k8s:
     definition: "{{ lookup('template', item)|from_yaml }}"
   loop:
   - loader-job.yaml.j2
 
-- name: Wait for Loader job
+- name: Wait for Loader (Job)
   shell: >-
     oc describe jobs/graph-loader --namespace={{ graph_project }}
     | grep '1 Succeeded'
   delay: 20
-  retries: "{{ (pod_ready_timeout | int / 20) | int }}"
+  retries: "{{ (graph_loader_pod_ready_timeout|int / 20)|int }}"
   register: result
   until: result.rc == 0
+
+# Deploy the graph...
+
+- name: Deploy Graph
+  k8s:
+    definition: "{{ lookup('template', item)|from_yaml }}"
+  loop:
+  - graph-deployment.yaml.j2
+  - graph-service.yaml.j2
+
+- name: Wait for Graph
+  shell: oc get po | grep {{ item }} | grep -v deploy | grep 1/1 > /dev/null
+  delay: 60
+  retries: "{{ (graph_pod_ready_timeout|int / 60)|int }}"
+  register: result
+  until: result.rc == 0
+  loop:
+  - graph-pod
+  changed_when: false
