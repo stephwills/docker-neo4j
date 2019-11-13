@@ -15,6 +15,9 @@ graph_tag: '3.5'
 graph_loader_image: informaticsmatters/neo4j-s3-loader
 graph_loader_tag: '3.5'
 
+graph_pagecache_size_g: 8
+graph_heap_g: 8
+
 pod_ready_timeout: 600
 
 # Picked up from the environment...
