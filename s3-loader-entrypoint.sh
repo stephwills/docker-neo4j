@@ -16,3 +16,20 @@ if [ "$GRAPH_WIPE" = "yes" ]; then
   rm -rf /data/*
 fi
 aws s3 sync "s3://${AWS_BUCKET}/${AWS_BUCKET_PATH}" "/data/${SYNC_PATH}"
+
+# If there's 'once' or 'always' content then place them
+# in the expected location for cypher scripts.
+if [ "$CYPHER_ONCE_CONTENT" ]
+then
+  mkdir -p /data/cypher-script
+  chmod 0755 /data/cypher-script
+  echo "$CYPHER_ONCE_CONTENT" > /data/cypher-script/cypher-script.once
+  chmod 0755 /data/cypher-script/cypher-script.once
+fi
+if [ "$CYPHER_ALWAYS_CONTENT" ]
+then
+  mkdir -p /data/cypher-script
+  chmod 0755 /data/cypher-script
+  echo "$CYPHER_ALWAYS_CONTENT" > /data/cypher-script/cypher-script.always
+  chmod 0755 /data/cypher-script/cypher-script.always
+fi
