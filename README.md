@@ -1,15 +1,13 @@
 # The InformaticsMatters neo4j container image
 A specialised build of neo4j used by a number of InformaticsMatters projects.
 
+The repo contains image definitions for our Graph database and a loader
+that populates the graph from an AWS S3 path.
+
 To build and push...
 
     $ docker-compose build
     $ docker-compose push
-
-With a non-default tag...
-
-    $ IMAGE_TAG=test docker-compose build
-    $ IMAGE_TAG=test docker-compose push
 
 ## Typical execution (Docker)
 Assuming you have: -

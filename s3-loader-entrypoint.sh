@@ -13,23 +13,33 @@
 # If GRAPH_WIPE is 'yes' then the /data directory is
 # erased prior to running the S3 sync.
 if [ "$GRAPH_WIPE" = "yes" ]; then
+  echo "Wiping graph data (GRAPH_WIPE=$GRAPH_WIPE)..."
   rm -rf /data/*
+else
+  echo "Preserving exisiting graph data (GRAPH_WIPE=$GRAPH_WIPE)"
 fi
+
+echo "Synchronising S3 path (${AWS_BUCKET}/${AWS_BUCKET_PATH})..."
 aws s3 sync "s3://${AWS_BUCKET}/${AWS_BUCKET_PATH}" "/data/${SYNC_PATH}"
 
-# If there's 'once' or 'always' content then place them
-# in the expected location for cypher scripts.
+# If there's 'once' or 'always' content then place it
+# in the expected location for the corresponding cypher scripts.
+cypher_path="$CYPHER_ROOT/cypher-script"
 if [ "$CYPHER_ONCE_CONTENT" ]
 then
-  mkdir -p /data/cypher-script
-  chmod 0755 /data/cypher-script
-  echo "$CYPHER_ONCE_CONTENT" > /data/cypher-script/cypher-script.once
-  chmod 0755 /data/cypher-script/cypher-script.once
+  cypher_file=cypher-script.once
+  echo "Writing $cypher_path/$cypher_file..."
+  mkdir -p "$cypher_path"
+  chmod 0755 "$cypher_path"
+  echo "$CYPHER_ONCE_CONTENT" > "$cypher_path/$cypher_file"
+  chmod 0755 "$cypher_path/$cypher_file"
 fi
 if [ "$CYPHER_ALWAYS_CONTENT" ]
 then
-  mkdir -p /data/cypher-script
-  chmod 0755 /data/cypher-script
-  echo "$CYPHER_ALWAYS_CONTENT" > /data/cypher-script/cypher-script.always
-  chmod 0755 /data/cypher-script/cypher-script.always
+  cypher_file=cypher-script.always
+  echo "Writing $cypher_path/$cypher_file..."
+  mkdir -p "$cypher_path"
+  chmod 0755 "$cypher_path"
+  echo "$CYPHER_ALWAYS_CONTENT" > "$cypher_path/$cypher_file"
+  chmod 0755 "$cypher_path/$cypher_file"
 fi
