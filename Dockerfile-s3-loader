@@ -1,0 +1,33 @@
+FROM python:3.7.5-alpine3.10
+
+# Force the binary layer of the stdout and stderr streams
+# to be unbuffered
+ENV PYTHONUNBUFFERED 1
+
+# Base directory for the application
+# Also used for user directory
+ENV APP_ROOT /home/loader
+
+# Containers should NOT run as root
+# (as good practice)
+RUN adduser -D -h ${APP_ROOT} -s /bin/sh loader
+
+RUN pip install awscli==1.16.280
+
+# Here we synchronise an S3 bucket and path to '/data',
+# which is expected to be an external volume.
+# Make the data directory (mount point)
+WORKDIR /data
+
+# Copy entrypoint and set permissions...
+COPY s3-loader-entrypoint.sh ${APP_ROOT}/
+RUN chmod 755 ${APP_ROOT}/s3-loader-entrypoint.sh && \
+    chown -R loader:loader ${APP_ROOT} && \
+    chown -R loader:loader /data
+
+# Switch user and move to HOME
+USER loader
+ENV HOME ${APP_ROOT}
+WORKDIR ${APP_ROOT}
+
+CMD ["./s3-loader-entrypoint.sh"]

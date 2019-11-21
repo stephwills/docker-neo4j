@@ -1,0 +1,13 @@
+---
+
+- name: Remove application objects
+  k8s:
+    definition: "{{ lookup('template', item)|from_yaml }}"
+    state: absent
+  loop:
+  - secrets.yaml.j2
+  - loader-job.yaml.j2
+  - graph-deployment.yaml.j2
+  - graph-http-service.yaml.j2
+  - graph-bolt-service.yaml.j2
+  - graph-http-route.yaml.j2

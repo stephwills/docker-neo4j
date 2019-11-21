@@ -1,15 +1,13 @@
 # The InformaticsMatters neo4j container image
 A specialised build of neo4j used by a number of InformaticsMatters projects.
 
+The repo contains image definitions for our Graph database and a loader
+that populates the graph from an AWS S3 path.
+
 To build and push...
 
     $ docker-compose build
     $ docker-compose push
-
-With a non-default tag...
-
-    $ IMAGE_TAG=test docker-compose build
-    $ IMAGE_TAG=test docker-compose push
 
 ## Typical execution (Docker)
 Assuming you have: -
@@ -65,5 +63,11 @@ the scripts will be run in the background automatically.
 >   The cypher runner waits for a short period of time after neo4j has been
     given an opportunity to start (about 15 seconds) before the first run of
     the script is attempted.
+
+## The ansible role and playbook
+The Ansible role and corresponding playbook has been written to simplify
+deployment of the neo4j image along with an associated AWS S3-based graph.
+
+The role deploys an S3-based loader prior to spinning-up the neo4j instance. 
 
 ---

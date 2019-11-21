@@ -18,9 +18,9 @@ ME=cypher-runner.sh
 
 # The legacy scriot is always executed.
 # It is deprecated and users should use the `.once` or `.always` scripts.
-LEGACY_SCRIPT=/cypher-script/cypher.script
-ONCE_SCRIPT=/cypher-script/cypher-script.once
-ALWAYS_SCRIPT=/cypher-script/cypher-script.always
+LEGACY_SCRIPT="$CYPHER_ROOT"/cypher-script/cypher.script
+ONCE_SCRIPT="$CYPHER_ROOT"/cypher-script/cypher-script.once
+ALWAYS_SCRIPT="$CYPHER_ROOT"/cypher-script/cypher-script.always
 # The 'we have executed' file. We 'touch' this at the end of this script.
 # If present (in the IMPORT_DIRECTORY) this prevents us from running the
 # '.once' script.
@@ -42,8 +42,26 @@ then
     exit 0
 fi
 
-echo "($ME) $(date) Pre-neo4j pause..."
-sleep 14
+echo "($ME) $(date) NEO4J_USERNAME=$NEO4J_USERNAME"
+echo "($ME) $(date) NEO4J_PASSWORD=$NEO4J_PASSWORD"
+echo "($ME) $(date) LEGACY_SCRIPT=$LEGACY_SCRIPT"
+echo "($ME) $(date) ONCE_SCRIPT=$ONCE_SCRIPT"
+echo "($ME) $(date) ALWAYS_SCRIPT=$ALWAYS_SCRIPT"
+echo "($ME) $(date) EXECUTED_FILE=$EXECUTED_FILE"
+
+# Configurable sleep prior to the first cypher command.
+# Needs to be sufficient to allow the server to start accepting connections.
+SLEEP_TIME=${CYPHER_PRE_NEO4J_SLEEP:-60}
+echo "($ME) $(date) Pre-cypher pause ($SLEEP_TIME seconds)..."
+sleep "$SLEEP_TIME"
+
+# Attempt to change the initial password...
+# Added during work on k8s and OpenShift deployment
+# (password didn't appear to be set)
+if [[ ! -f "$EXECUTED_FILE" ]]; then
+  echo "($ME) $(date) Setting neo4j password..."
+  /var/lib/neo4j/bin/cypher-shell -u neo4j -p neo4j "CALL dbms.changePassword('$NEO4J_PASSWORD')" || true
+fi
 
 # Always run the LEGACY_SCRIPT if it exists)...
 if [ -f "$LEGACY_SCRIPT" ]; then
