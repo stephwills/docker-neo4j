@@ -61,8 +61,9 @@ If the environment variables `NEO4J_USERNAME` and `NEO4J_PASSWORD` are defined,
 the scripts will be run in the background automatically.
 
 >   The cypher runner waits for a short period of time after neo4j has been
-    given an opportunity to start (about 15 seconds) before the first run of
-    the script is attempted.
+    given an opportunity to start (about 60 seconds) before the first run of
+    the script is attempted. This can be configured in the image (refer
+    to the cypher-runner script for the environment variables it inspects).
 
 ## The ansible role and playbook
 The Ansible role and corresponding playbook has been written to simplify
