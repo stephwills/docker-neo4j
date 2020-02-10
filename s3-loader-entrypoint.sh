@@ -2,6 +2,12 @@
 
 # We need some key environment variables
 # before we do anything sensible...
+#
+# AWS_*       Are AWS credentials for accessing the S3 bucket
+# SYNC_PATH   Is the directory to synchronise S3 content with
+#             Typically the data-loader directory
+# GRAPH_WIPE  If 'yes' then all data is erased, forcing
+#             a resync with S3 and a reload of the Graph data
 
 : "${AWS_ACCESS_KEY_ID?Need to set AWS_ACCESS_KEY_ID}"
 : "${AWS_SECRET_ACCESS_KEY?Need to set AWS_SECRET_ACCESS_KEY}"
