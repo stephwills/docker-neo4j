@@ -27,6 +27,8 @@ fi
 
 echo "Synchronising S3 path (${AWS_BUCKET}/${AWS_BUCKET_PATH})..."
 aws s3 sync "s3://${AWS_BUCKET}/${AWS_BUCKET_PATH}" "/data/${SYNC_PATH}"
+# Just in case the above fails, at least create a data directory...
+mkdir -p /data/data
 
 # If there's 'once' or 'always' content then place it
 # in the expected location for the corresponding cypher scripts.
