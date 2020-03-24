@@ -22,7 +22,7 @@ if [ "$GRAPH_WIPE" = "yes" ]; then
   echo "Wiping graph data (GRAPH_WIPE=$GRAPH_WIPE)..."
   rm -rf /data/*
 else
-  echo "Preserving exisiting graph data (GRAPH_WIPE=$GRAPH_WIPE)"
+  echo "Preserving existing graph data (GRAPH_WIPE=$GRAPH_WIPE)"
 fi
 
 echo "Synchronising S3 path (${AWS_BUCKET}/${AWS_BUCKET_PATH})..."
