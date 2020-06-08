@@ -57,6 +57,10 @@ An example `.always` script may contain the following cache-warm-up commands: -
 
     CALL apoc.warmup.run(true, true, true);
 
+>   This command helps improve query performance by quickly [warming up] the
+    page-cache by touching pages in parallel optionally loading
+    property-records, dynamic-properties and indexes
+
 If the environment variables `NEO4J_USERNAME` and `NEO4J_PASSWORD` are defined,
 the scripts will be run in the background automatically.
 
@@ -72,3 +76,5 @@ deployment of the neo4j image along with an associated AWS S3-based graph.
 The role deploys an S3-based loader prior to spinning-up the neo4j instance. 
 
 ---
+
+[warming up]: https://neo4j-contrib.github.io/neo4j-apoc-procedures/3.5/operational/warmup/
