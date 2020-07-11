@@ -1,4 +1,4 @@
-FROM python:3.7.5-alpine3.10
+FROM python:3.8.3-alpine3.12
 
 # Force the binary layer of the stdout and stderr streams
 # to be unbuffered
@@ -12,7 +12,7 @@ ENV APP_ROOT /home/loader
 # (as good practice)
 RUN adduser -D -h ${APP_ROOT} -s /bin/sh loader
 
-RUN pip install awscli==1.16.280
+RUN pip install awscli==1.18.97
 
 # Here we synchronise an S3 bucket and path to '/data',
 # which is expected to be an external volume.

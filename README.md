@@ -33,7 +33,7 @@ with the following docker command: -
         -e IMPORT_DIRECTORY=/data-import \
         -e IMPORT_TO=graph \
         -e EXTENSION_SCRIPT=/data-import/load-neo4j.sh \
-        informaticsmatters/neo4j:3.5.2
+        informaticsmatters/neo4j:3.5.19
 
 ## Running post-DB cypher commands
 The image contains the ability to run a series of cypher commands
@@ -69,6 +69,20 @@ the scripts will be run in the background automatically.
     the script is attempted. This can be configured in the image (refer
     to the cypher-runner script for the environment variables it inspects).
 
+## docker-entrypoint tweaks
+**CAUTION**: We replace the supplied neo4h `docker-entrypoint.sh` script with
+our own variant. It adds some extra logic, all identified and briefly documents
+by comments that begin `IM-BEGIN` and end with `IM-END`.
+
+## Plugins
+We've added the following plugins to the image: -
+
+1.  **Neo4j Graph Data Science Library** from the [community] section of the
+    download-centre
+    (formally the graph-alorithms-algo library wew used in our 3.5 image)
+2.  **Neo4j Apoc Procedure**, a collection of useful Neo4j Procedures
+    from the [apoc] distribution on Maven.
+    
 ## The ansible role and playbook
 The Ansible role and corresponding playbook has been written to simplify
 deployment of the neo4j image along with an associated AWS S3-based graph.
@@ -77,4 +91,6 @@ The role deploys an S3-based loader prior to spinning-up the neo4j instance.
 
 ---
 
+[apoc]: https://mvnrepository.com/artifact/org.neo4j.procedure/apoc
+[community]: https://neo4j.com/download-center/#community
 [warming up]: https://neo4j-contrib.github.io/neo4j-apoc-procedures/3.5/operational/warmup/
