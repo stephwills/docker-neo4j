@@ -27,7 +27,7 @@ with the following docker command: -
         -v $HOME/neo4j-container-graph:/graph \
         -p 7474:7474 \
         -p 7687:7687 \
-        -e NEO4J_AUTH=none \
+        -e NEO4J_AUTH=neo4j/blob1234 \
         -e NEO4J_dbms_directories_data=/graph \
         -e NEO4J_dbms_directories_logs=/graph-logs \
         -e IMPORT_DIRECTORY=/data-import \

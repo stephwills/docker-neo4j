@@ -472,7 +472,7 @@ fi
 
 # (IM-BEGIN) Be much more public about running the extension script.
 # i.e. echo begin and end.
-echo "EXTENSION_SCRIPT=${EXTENSION_SCRIPT}"
+echo "EXTENSION_SCRIPT=${EXTENSION_SCRIPT:-}"
 if [ -f "${EXTENSION_SCRIPT:-}" ]; then
   echo "(begin) ${EXTENSION_SCRIPT}"
   . ${EXTENSION_SCRIPT}
@@ -489,6 +489,10 @@ if [ "${cmd}" == "dump-config" ]; then
     exit 0
 fi
 
+# (IM-BEGIN) Set a default data directory
+NEO4J_dbms_directories_data=${NEO4J_dbms_directories_data:-/data}
+# (IM-END)
+
 # Chown the data dir now that (maybe) an initial password has been
 # set (this is a file in the data dir)
 if [[ "$(id -u)" = "0" ]]; then
@@ -496,13 +500,18 @@ if [[ "$(id -u)" = "0" ]]; then
   echo "(to userid=${userid} groupid=${groupid})"
   chmod -R 755 ${NEO4J_dbms_directories_data} || true
   chown -R "${userid}":"${groupid}" ${NEO4J_dbms_directories_data} || true
+  echo "(chmod/chown done)"
   echo "(removing logs)..."
-  rm ${NEO4J_dbms_directories_logs}/* || true
-  echo "(done)"
+  rm ${NEO4J_dbms_directories_logs}/* 2>/dev/null || true
+  echo "(logs done)"
 fi
 
 # (IM-BEGIN) Run our background cypher-runner...
+echo "(starting cypher-runner)..."
 /cypher-runner/cypher-runner.sh &
+echo "(started)"
+echo "cmd=${cmd}"
+echo "exec_cmd=${exec_cmd}"
 # (IM-END)
 
 # Use su-exec to drop privileges to neo4j user
@@ -512,3 +521,4 @@ if [ "${cmd}" == "neo4j" ]; then
   ${exec_cmd} neo4j console
 else
   ${exec_cmd} "$@"
+fi
