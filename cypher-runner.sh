@@ -66,6 +66,9 @@ fi
 # Always run the LEGACY_SCRIPT if it exists)...
 if [ -f "$LEGACY_SCRIPT" ]; then
     echo "($ME) $(date) Trying legacy $LEGACY_SCRIPT..."
+    echo "[SCRIPT BEGIN]"
+    cat $LEGACY_SCRIPT
+    echo "[SCRIPT END]"
     until /var/lib/neo4j/bin/cypher-shell < "$LEGACY_SCRIPT"
     do
         echo "($ME) $(date) No joy, waiting..."
@@ -80,6 +83,9 @@ fi
 # (if the EXECUTE_FILE is not present)...
 if [[ ! -f "$EXECUTED_FILE" && -f "$ONCE_SCRIPT" ]]; then
     echo "($ME) $(date) Trying $ONCE_SCRIPT..."
+    echo "[SCRIPT BEGIN]"
+    cat $ONCE_SCRIPT
+    echo "[SCRIPT END]"
     until /var/lib/neo4j/bin/cypher-shell < "$ONCE_SCRIPT"
     do
         echo "($ME) $(date) No joy, waiting..."
@@ -93,6 +99,9 @@ fi
 # Always run the ALWAYS_SCRIPT...
 if [ -f "$ALWAYS_SCRIPT" ]; then
     echo "($ME) $(date) Trying $ALWAYS_SCRIPT..."
+    echo "[SCRIPT BEGIN]"
+    cat $ALWAYS_SCRIPT
+    echo "[SCRIPT END]"
     until /var/lib/neo4j/bin/cypher-shell < "$ALWAYS_SCRIPT"
     do
         echo "($ME) $(date) No joy, waiting..."
