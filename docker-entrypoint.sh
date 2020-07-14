@@ -501,9 +501,6 @@ if [[ "$(id -u)" = "0" ]]; then
   chmod -R 755 ${NEO4J_dbms_directories_data} || true
   chown -R "${userid}":"${groupid}" ${NEO4J_dbms_directories_data} || true
   echo "(chmod/chown done)"
-  echo "(removing logs)..."
-  rm ${NEO4J_dbms_directories_logs}/* 2>/dev/null || true
-  echo "(logs done)"
 fi
 
 # (IM-BEGIN) Run our background cypher-runner...
