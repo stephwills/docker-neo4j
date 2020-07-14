@@ -493,15 +493,33 @@ fi
 NEO4J_dbms_directories_data=${NEO4J_dbms_directories_data:-/data}
 # (IM-END)
 
-# Chown the data dir now that (maybe) an initial password has been
-# set (this is a file in the data dir)
+# (IM-BEGIN) Change ownership and permissions in the the data and logs dirs
+# now that (maybe) an initial password has been set
 if [[ "$(id -u)" = "0" ]]; then
-  echo "(chmod/chown) ${NEO4J_dbms_directories_data}..."
-  echo "(to userid=${userid} groupid=${groupid})"
-  chmod -R 755 ${NEO4J_dbms_directories_data} || true
-  chown -R "${userid}":"${groupid}" ${NEO4J_dbms_directories_data} || true
-  echo "(chmod/chown done)"
+  echo "(touch debug logs) at ${NEO4J_dbms_directories_logs}..."
+  touch ${NEO4J_dbms_directories_logs}/debug.log
+  echo "(touched)"
+
+  echo "(chmod/chown)..."
+  echo "id=$(id -u)"
+  echo "data=${NEO4J_dbms_directories_data}"
+  chmod -R 777 ${NEO4J_dbms_directories_data} || true
+  chown -R "neo4j:neo4j" ${NEO4J_dbms_directories_data} || true
+  echo "data=${NEO4J_dbms_directories_logs}"
+  chmod -R 777 ${NEO4J_dbms_directories_logs} || true
+  chown -R "neo4j:neo4j" ${NEO4J_dbms_directories_logs} || true
+  echo "(chmod/shown done)"
+
+  echo "(listing)"
+  echo "(listing /)"
+  ls -l /
+  echo "(listing ${NEO4J_dbms_directories_data})"
+  ls -l ${NEO4J_dbms_directories_data}
+  echo "(listing ${NEO4J_dbms_directories_logs})"
+  ls -l ${NEO4J_dbms_directories_logs}
+  echo "(listed)"
 fi
+# (IM-END)
 
 # (IM-BEGIN) Run our background cypher-runner...
 echo "(starting cypher-runner)..."
