@@ -502,13 +502,13 @@ if [[ "$(id -u)" = "0" ]]; then
 
   echo "(chmod/chown)..."
   echo "id=$(id -u)"
-  echo "data=${NEO4J_dbms_directories_data}"
+  echo "data at ${NEO4J_dbms_directories_data}"
   chmod -R 777 ${NEO4J_dbms_directories_data} || true
   chown -R "neo4j:neo4j" ${NEO4J_dbms_directories_data} || true
-  echo "data=${NEO4J_dbms_directories_logs}"
+  echo "logs at ${NEO4J_dbms_directories_logs}"
   chmod -R 777 ${NEO4J_dbms_directories_logs} || true
   chown -R "neo4j:neo4j" ${NEO4J_dbms_directories_logs} || true
-  echo "(chmod/shown done)"
+  echo "(chmod/chown done)"
 
   echo "(listing)"
   echo "(listing /)"
