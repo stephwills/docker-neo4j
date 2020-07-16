@@ -1,4 +1,4 @@
-FROM neo4j:3.5.19
+FROM neo4j:3.5.20
 
 COPY ./docker-entrypoint.sh /
 COPY ./files/*.jar /var/lib/neo4j/plugins/
