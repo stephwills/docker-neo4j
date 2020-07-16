@@ -82,6 +82,11 @@ We've added the following plugins to the image: -
     (formally the graph-alorithms-algo library wew used in our 3.5 image)
 2.  **Neo4j Apoc Procedure**, a collection of useful Neo4j Procedures
     from the [apoc] distribution on Maven.
+
+## The enterprise container image
+Although a build is made available for the Enterprise container
+you are not permitted to use it unless you are in possession of a
+valid licence agreement.
     
 ## The ansible role and playbook
 The Ansible role and corresponding playbook has been written to simplify

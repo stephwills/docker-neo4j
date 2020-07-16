@@ -8,6 +8,13 @@ services:
     image: informaticsmatters/neo4j:3.5.20
     container_name: neo4j
 
+  graph-enterprise:
+    build:
+      context: .
+      dockerfile: Dockerfile-enterprise
+    image: informaticsmatters/neo4j:3.5.20-enterprise
+    container_name: neo4j-enterprise
+
   graph-loader:
     build:
       context: .
