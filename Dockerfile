@@ -14,3 +14,5 @@ RUN mkdir /cypher-script && \
     chmod 755 /docker-entrypoint.sh && \
     chmod 744 /cypher-script && \
     echo 'dbms.security.procedures.unrestricted=algo.*,apoc.*' >> /var/lib/neo4j/conf/neo4j.conf
+
+env NEO4J_EDITION community
