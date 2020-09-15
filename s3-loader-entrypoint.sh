@@ -25,8 +25,29 @@ else
   echo "Preserving existing graph data (GRAPH_WIPE=$GRAPH_WIPE)"
 fi
 
-echo "Synchronising S3 path (${AWS_BUCKET}/${AWS_BUCKET_PATH})..."
-aws s3 sync "s3://${AWS_BUCKET}/${AWS_BUCKET_PATH}" "/data/${SYNC_PATH}"
+# List the bucket's objects (files).
+# Output is typically: -
+#
+#   2019-07-29 18:06:05          0 combine-done
+#   2019-07-29 18:05:57          0 done
+#   2019-07-29 18:03:41         38 edges-header.csv
+#   2019-07-30 19:48:00 22699163411 edges.csv.gz
+#
+# And we want...
+#
+#   combine-done
+#   done
+#   edges-header.csv
+#   edges.csv.gz
+echo "Listing S3 path (${AWS_BUCKET}/${AWS_BUCKET_PATH})..."
+PATH_OBJECTS=$(aws s3 ls "s3://${AWS_BUCKET}/${AWS_BUCKET_PATH}/" | tr -s ' ' | cut -d ' ' -f 4)
+
+# Now copy each object to the local SYNC_PATH
+echo "Copying objects..."
+for PATH_OBJECT in $PATH_OBJECTS; do
+  aws s3 cp "s3://${AWS_BUCKET}/${AWS_BUCKET_PATH}/${PATH_OBJECT}" "/data/${SYNC_PATH}/${PATH_OBJECT}"
+done
+echo "Copied."
 # Just in case the above fails, at least create a data directory...
 mkdir -p /data/data
 
