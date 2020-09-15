@@ -5,19 +5,19 @@ services:
   graph:
     build:
       context: .
-    image: informaticsmatters/neo4j:3.5.20
+    image: informaticsmatters/neo4j:3.5.20-1
     container_name: neo4j
 
   graph-enterprise:
     build:
       context: .
       dockerfile: Dockerfile-enterprise
-    image: informaticsmatters/neo4j:3.5.20-enterprise
+    image: informaticsmatters/neo4j:3.5.20-1-enterprise
     container_name: neo4j-enterprise
 
   graph-loader:
     build:
       context: .
       dockerfile: Dockerfile-s3-loader
-    image: informaticsmatters/neo4j-s3-loader:3.5.20
+    image: informaticsmatters/neo4j-s3-loader:3.5.20-1
     container_name: neo4j-s3-loader
