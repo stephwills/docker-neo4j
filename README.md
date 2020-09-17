@@ -1,4 +1,7 @@
 # The InformaticsMatters neo4j container image
+
+[![CodeFactor](https://www.codefactor.io/repository/github/informaticsmatters/docker-neo4j/badge)](https://www.codefactor.io/repository/github/informaticsmatters/docker-neo4j)
+
 A specialised build of neo4j used by a number of InformaticsMatters projects.
 
 The repo contains image definitions for our Graph database and a loader
