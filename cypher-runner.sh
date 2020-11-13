@@ -5,12 +5,12 @@
 # 1. We always run the LEGACY_SCRIPT script (if present)
 #    ...but we should stop using the LEGACY_SCRIPT
 # 2. We run the ONCE_SCRIPT on first execution (if present)
-# 3. We always run the ALWASY_SCRIPT (if present)
+# 3. We always run the ALWAYS_SCRIPT (if present)
 #
 # Normally there's a LEGACY script or we're using the
 # ONCE or ALWAYS scripts. LEGACY is supported for backwards compatibility.
 #
-# Determing whether this is the first execution relies on a persistent volume
+# Determining whether this is the first execution relies on a persistent volume
 # and here we use the IMPORT_DIRECTORY. If it is not defined or the volume it
 # points to is not persisted then all scripts will always be executed.
 
@@ -26,7 +26,7 @@ ALWAYS_SCRIPT="$CYPHER_ROOT"/cypher-script/cypher-script.always
 # '.once' script.
 # The import directory variable may not exist - if it doesn't
 # then will end up running all the scripts on each container start
-# (because we ouly 'touch' this file if the IMPORT_DIRECTORY exists).
+# (because we only 'touch' this file if the IMPORT_DIRECTORY exists).
 EXECUTED_FILE="$IMPORT_DIRECTORY"/cypher-runner.executed
 
 echo "($ME) $(date) Starting (IMPORT_DIRECTORY=$IMPORT_DIRECTORY)..."
@@ -114,7 +114,7 @@ fi
 
 # Touch a 'cypher-runner.executed' file (if the IMPORT_DIRECTORY exists)
 # This is used to prevent us from running the '.once' script on re-boot
-# but relies on the IMPORT_DIRECTORY being perseisted between reboots.
+# but relies on the IMPORT_DIRECTORY being persisted between reboots.
 if [ -n "$IMPORT_DIRECTORY" ]; then
   echo "($ME) $(date) Touching $EXECUTED_FILE..."
   touch "$EXECUTED_FILE"

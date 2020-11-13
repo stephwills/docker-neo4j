@@ -121,10 +121,17 @@ function check_mounted_folder_with_chown
 
     local mountFolder=${1}
     if running_as_root; then
-        if ! is_writable "${mountFolder}" && ! secure_mode_enabled; then
-            # warn that we're about to chown the folder and then chown it
-            echo "Warning: Folder mounted to \"${mountFolder}\" is not writable from inside container. Changing folder owner to ${userid}."
-            chown -R "${userid}":"${groupid}" "${mountFolder}"
+        if ! secure_mode_enabled; then
+            # check folder permissions
+            if ! is_writable "${mountFolder}" ;  then
+                # warn that we're about to chown the folder and then chown it
+                echo "Warning: Folder mounted to \"${mountFolder}\" is not writable from inside container. Changing folder owner to ${userid}."
+                chown -R "${userid}":"${groupid}" "${mountFolder}"
+            # check permissions on files in the folder
+            elif [ $(gosu "${userid}":"${groupid}" find "${mountFolder}" -not -writable | wc -l) -gt 0 ]; then
+                echo "Warning: Some files inside \"${mountFolder}\" are not writable from inside container. Changing folder owner to ${userid}."
+                chown -R "${userid}":"${groupid}" "${mountFolder}"
+            fi
         fi
     else
         if [[ ! -w "${mountFolder}" ]]  && [[ "$(stat -c %U ${mountFolder})" != "neo4j" ]]; then
@@ -373,7 +380,7 @@ if [ "${cmd}" == "neo4j" ]; then
         echo "...NEO4J_AUTH is none"
         NEO4J_dbms_security_auth__enabled=false
     elif [[ "${NEO4J_AUTH:-}" == neo4j/* ]]; then
-        # USERNAME and PASSWORD are required for cypher-shell commands
+        # USERNAME and PASSWORD are required for cypher-shell commands
         # that may be used in our cypher-runner script (executed later)
         export NEO4J_USERNAME=neo4j
         export NEO4J_PASSWORD="${NEO4J_AUTH#neo4j/}"
