@@ -82,7 +82,7 @@ We've added the following plugins to the image: -
 
 1.  **Neo4j Graph Data Science Library** from the [community] section of the
     download-centre
-    (formally the graph-alorithms-algo library wew used in our 3.5 image)
+    (formally the graph-algorithms-algo library we used in our 3.5 image)
 2.  **Neo4j Apoc Procedure**, a collection of useful Neo4j Procedures
     from the [apoc] distribution on Maven.
 
