@@ -59,16 +59,12 @@ then
   cypher_file=cypher-script.once
   echo "Writing $cypher_path/$cypher_file..."
   mkdir -p "$cypher_path"
-  chmod 0755 "$cypher_path"
   echo "$CYPHER_ONCE_CONTENT" > "$cypher_path/$cypher_file"
-  chmod 0755 "$cypher_path/$cypher_file"
 fi
 if [ "$CYPHER_ALWAYS_CONTENT" ]
 then
   cypher_file=cypher-script.always
   echo "Writing $cypher_path/$cypher_file..."
   mkdir -p "$cypher_path"
-  chmod 0755 "$cypher_path"
   echo "$CYPHER_ALWAYS_CONTENT" > "$cypher_path/$cypher_file"
-  chmod 0755 "$cypher_path/$cypher_file"
 fi
