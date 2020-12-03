@@ -3,11 +3,14 @@
 # We need some key environment variables
 # before we do anything sensible...
 #
-# AWS_*       Are AWS credentials for accessing the S3 bucket
-# SYNC_PATH   Is the directory to synchronise S3 content with
-#             Typically the data-loader directory
-# GRAPH_WIPE  If 'yes' then all data is erased, forcing
-#             a resync with S3 and a reload of the Graph data
+# AWS_*         Are AWS credentials for accessing the S3 bucket
+# SYNC_PATH     Is the directory to synchronise S3 content with
+#               Typically the data-loader directory
+# GRAPH_WIPE    If 'yes' then all data is erased, forcing
+#               a resync with S3 and a reload of the Graph data
+# POST_SLEEP_S  A value (seconds) to sleep at the end of the script.
+#               this allows the user to inspect the environment prior
+#               to the execution moving to the graph container.
 
 : "${AWS_ACCESS_KEY_ID?Need to set AWS_ACCESS_KEY_ID}"
 : "${AWS_SECRET_ACCESS_KEY?Need to set AWS_SECRET_ACCESS_KEY}"
@@ -67,4 +70,10 @@ then
   echo "Writing $cypher_path/$cypher_file..."
   mkdir -p "$cypher_path"
   echo "$CYPHER_ALWAYS_CONTENT" > "$cypher_path/$cypher_file"
+fi
+
+# Has a POST_SLEEP_S been defined?
+if [ "$POST_SLEEP_S" ]
+then
+  sleep "$POST_SLEEP_S"
 fi
