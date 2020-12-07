@@ -386,19 +386,22 @@ if [ "${cmd}" == "neo4j" ]; then
         export NEO4J_PASSWORD="${NEO4J_AUTH#neo4j/}"
         echo "...NEO4J_AUTH password is ${NEO4J_PASSWORD}"
         if [ "${NEO4J_PASSWORD}" == "neo4j" ]; then
-            echo >&2 "Invalid value for password. It cannot be 'neo4j', which is the default."
-            exit 1
+            echo >&2 "Default password - nothing to do."
+        else
+            if running_as_root; then
+                # running set-initial-password as root will create subfolders
+                # to /data as root, causing startup fail when neo4j can't
+                # read or write the /data/dbms folder
+                # creating the folder first will avoid that
+                mkdir -p /data/dbms
+                chown "${userid}":"${groupid}" /data/dbms
+            fi
+            # Will exit with error if users already exist
+            # (and print a message explaining that)
+            # we probably don't want the message though, since it throws an
+            # error message on restarting the container.
+            neo4j-admin set-initial-password "${NEO4J_PASSWORD}" || true
         fi
-
-        if running_as_root; then
-            # running set-initial-password as root will create subfolders to /data as root, causing startup fail when neo4j can't read or write the /data/dbms folder
-            # creating the folder first will avoid that
-            mkdir -p /data/dbms
-            chown "${userid}":"${groupid}" /data/dbms
-        fi
-        # Will exit with error if users already exist (and print a message explaining that)
-        # we probably don't want the message though, since it throws an error message on restarting the container.
-        neo4j-admin set-initial-password "${NEO4J_PASSWORD}" || true
     elif [ -n "${NEO4J_AUTH:-}" ]; then
         echo >&2 "Invalid value for NEO4J_AUTH: '${NEO4J_AUTH}'"
         exit 1

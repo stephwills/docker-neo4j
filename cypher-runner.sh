@@ -55,14 +55,6 @@ SLEEP_TIME=${CYPHER_PRE_NEO4J_SLEEP:-60}
 echo "($ME) $(date) Pre-cypher pause ($SLEEP_TIME seconds)..."
 sleep "$SLEEP_TIME"
 
-# Attempt to change the initial password...
-# Added during work on k8s and OpenShift deployment
-# (password didn't appear to be set)
-if [[ ! -f "$EXECUTED_FILE" ]]; then
-  echo "($ME) $(date) Setting neo4j password..."
-  /var/lib/neo4j/bin/cypher-shell -u neo4j -p neo4j "CALL dbms.changePassword('$NEO4J_PASSWORD')" || true
-fi
-
 # Always run the LEGACY_SCRIPT if it exists)...
 if [ -f "$LEGACY_SCRIPT" ]; then
     echo "($ME) $(date) Trying legacy $LEGACY_SCRIPT..."
