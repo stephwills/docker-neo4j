@@ -369,48 +369,6 @@ if [ -d /data ]; then
     fi
 fi
 
-
-# (IM-BEGIN) set the neo4j initial password only if you run the database server
-# Here we do a lot more echo and also create NEO4J_USERNAME and
-# NEO4J_PASSWORD that'll be needed by our cypher-runner script
-# (executed at the end of this script)
-if [ "${cmd}" == "neo4j" ]; then
-    echo "Evaluating NEO4J_AUTH..."
-    if [ "${NEO4J_AUTH:-}" == "none" ]; then
-        echo "...NEO4J_AUTH is none"
-        NEO4J_dbms_security_auth__enabled=false
-    elif [[ "${NEO4J_AUTH:-}" == neo4j/* ]]; then
-        # USERNAME and PASSWORD are required for cypher-shell commands
-        # that may be used in our cypher-runner script (executed later)
-        export NEO4J_USERNAME=neo4j
-        export NEO4J_PASSWORD="${NEO4J_AUTH#neo4j/}"
-        echo "...NEO4J_AUTH password is ${NEO4J_PASSWORD}"
-        if [ "${NEO4J_PASSWORD}" == "neo4j" ]; then
-            echo >&2 "Default password - nothing to do."
-        else
-            if running_as_root; then
-                # running set-initial-password as root will create subfolders
-                # to /data as root, causing startup fail when neo4j can't
-                # read or write the /data/dbms folder
-                # creating the folder first will avoid that
-                mkdir -p /data/dbms
-                chown "${userid}":"${groupid}" /data/dbms
-            fi
-            # Will exit with error if users already exist
-            # (and print a message explaining that)
-            # we probably don't want the message though, since it throws an
-            # error message on restarting the container.
-            neo4j-admin set-initial-password "${NEO4J_PASSWORD}" || true
-        fi
-    elif [ -n "${NEO4J_AUTH:-}" ]; then
-        echo >&2 "Invalid value for NEO4J_AUTH: '${NEO4J_AUTH}'"
-        exit 1
-    else
-        echo "...NEO4J_AUTH is not defined"
-    fi
-fi
-# (IM-END)
-
 declare -A COMMUNITY
 declare -A ENTERPRISE
 
