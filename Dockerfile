@@ -1,6 +1,7 @@
 FROM neo4j:3.5.25
 
 COPY ./docker-entrypoint.sh /
+COPY readiness-probe.sh /
 COPY ./files/*.jar /var/lib/neo4j/plugins/
 
 # Our cypher-runner.
@@ -11,8 +12,8 @@ COPY cypher-runner.sh /cypher-runner/
 
 RUN mkdir /cypher-script && \
     chmod 755 /cypher-runner/cypher-runner.sh && \
-    chmod 755 /docker-entrypoint.sh && \
+    chmod 755 /*.sh && \
     chmod 744 /cypher-script && \
     echo 'dbms.security.procedures.unrestricted=algo.*,apoc.*' >> /var/lib/neo4j/conf/neo4j.conf
 
-env NEO4J_EDITION community
+ENV NEO4J_EDITION community

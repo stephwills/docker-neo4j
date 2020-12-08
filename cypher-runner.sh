@@ -2,47 +2,51 @@
 
 # Order of execution...
 #
-# 1. We always run the LEGACY_SCRIPT script (if present)
-#    ...but we should stop using the LEGACY_SCRIPT
-# 2. We run the ONCE_SCRIPT on first execution (if present)
-# 3. We always run the ALWAYS_SCRIPT (if present)
+# 1. We run the ONCE_SCRIPT on first execution (if present)
+# 2. We always run the ALWAYS_SCRIPT (if present)
 #
-# Normally there's a LEGACY script or we're using the
-# ONCE or ALWAYS scripts. LEGACY is supported for backwards compatibility.
+# Expects the following environment variables: -
 #
-# Determining whether this is the first execution relies on a persistent volume
-# and here we use the IMPORT_DIRECTORY. If it is not defined or the volume it
-# points to is not persisted then all scripts will always be executed.
+#   CYPHER_PRE_NEO4J_SLEEP
+#   CYPHER_ROOT
+#   GRAPH_PASSWORD
+#   IMPORT_DIRECTORY
+#   NEO4J_dbms_directories_data
 
 ME=cypher-runner.sh
 
-# The legacy script is always executed.
-# It is deprecated and users should use the `.once` or `.always` scripts.
-LEGACY_SCRIPT="$CYPHER_ROOT"/cypher-script/cypher.script
-ONCE_SCRIPT="$CYPHER_ROOT"/cypher-script/cypher-script.once
-ALWAYS_SCRIPT="$CYPHER_ROOT"/cypher-script/cypher-script.always
-# The 'we have executed' file. We 'touch' this at the end of this script.
-# If present (in the IMPORT_DIRECTORY) this prevents us from running the
-# '.once' script.
-# The import directory variable may not exist - if it doesn't
-# then we will end up running all the scripts on each container start
-# (because we only 'touch' this file if the IMPORT_DIRECTORY exists).
-EXECUTED_FILE="$IMPORT_DIRECTORY"/cypher-runner.executed
-
-echo "($ME) $(date) Starting (IMPORT_DIRECTORY=$IMPORT_DIRECTORY)..."
-
+# The graph user password is required as an environment variable.
+# The user is expected to be 'neo4j'.
 if [ -z "$GRAPH_PASSWORD" ]
 then
     echo "($ME) $(date) No GRAPH_PASSWORD. Can't run without this."
     exit 0
 fi
 
+echo "($ME) $(date) Starting (IMPORT_DIRECTORY=$IMPORT_DIRECTORY)..."
+
+# The 'once' and 'always' cypher scripts
+ONCE_SCRIPT="$CYPHER_ROOT"/cypher-script/cypher-script.once
+ALWAYS_SCRIPT="$CYPHER_ROOT"/cypher-script/cypher-script.always
+
+# Files created (touched) when the 'first' script is run
+# and when the 'always' script is run. These files are created
+# even if there are no associated scripts. The 'always' file
+# is erased each time we're executed and re-created after it's re-executed.
+ONCE_EXECUTED_FILE="$IMPORT_DIRECTORY"/once.executed
+ALWAYS_EXECUTED_FILE="$IMPORT_DIRECTORY"/always.executed
+
+# Always remove the ALWAYS_EXECUTED_FILE.
+# We re-create this when we've run the always script
+# (which happens every time we start)
+rm -f "$ALWAYS_EXECUTED_FILE" || true
+
 echo "($ME) $(date) NEO4J_dbms_directories_data=$NEO4J_dbms_directories_data"
 echo "($ME) $(date) GRAPH_PASSWORD=$GRAPH_PASSWORD"
-echo "($ME) $(date) LEGACY_SCRIPT=$LEGACY_SCRIPT"
 echo "($ME) $(date) ONCE_SCRIPT=$ONCE_SCRIPT"
 echo "($ME) $(date) ALWAYS_SCRIPT=$ALWAYS_SCRIPT"
-echo "($ME) $(date) EXECUTED_FILE=$EXECUTED_FILE"
+echo "($ME) $(date) ONCE_EXECUTED_FILE=$ONCE_EXECUTED_FILE"
+echo "($ME) $(date) ALWAYS_EXECUTED_FILE=$ALWAYS_EXECUTED_FILE"
 
 # Configurable sleep prior to the first cypher command.
 # Needs to be sufficient to allow the server to start accepting connections.
@@ -67,25 +71,9 @@ if [ "$NEEDS_PASSWORD" -eq "1" ]; then
   /var/lib/neo4j/bin/cypher-shell -u neo4j -p neo4j "CALL dbms.changePassword('$GRAPH_PASSWORD')" || true
 fi
 
-# Always run the LEGACY_SCRIPT if it exists)...
-if [ -f "$LEGACY_SCRIPT" ]; then
-    echo "($ME) $(date) Trying legacy $LEGACY_SCRIPT..."
-    echo "[SCRIPT BEGIN]"
-    cat $LEGACY_SCRIPT
-    echo "[SCRIPT END]"
-    until /var/lib/neo4j/bin/cypher-shell -u neo4j -p "$GRAPH_PASSWORD" < "$LEGACY_SCRIPT"
-    do
-        echo "($ME) $(date) No joy, waiting..."
-        sleep 4
-    done
-    echo "($ME) $(date) Script executed."
-else
-    echo "($ME) $(date) No legacy script."
-fi
-
 # Run the ONCE_SCRIPT
-# (if the EXECUTE_FILE is not present)...
-if [[ ! -f "$EXECUTED_FILE" && -f "$ONCE_SCRIPT" ]]; then
+# (if the ONCE_EXECUTED_FILE is not present)...
+if [[ ! -f "$ONCE_EXECUTED_FILE" && -f "$ONCE_SCRIPT" ]]; then
     echo "($ME) $(date) Trying $ONCE_SCRIPT..."
     echo "[SCRIPT BEGIN]"
     cat $ONCE_SCRIPT
@@ -99,6 +87,8 @@ if [[ ! -f "$EXECUTED_FILE" && -f "$ONCE_SCRIPT" ]]; then
 else
     echo "($ME) $(date) No .once script (or restarted)."
 fi
+echo "($ME) $(date) Touching $ONCE_EXECUTED_FILE..."
+touch "$ONCE_EXECUTED_FILE"
 
 # Always run the ALWAYS_SCRIPT...
 if [ -f "$ALWAYS_SCRIPT" ]; then
@@ -115,13 +105,7 @@ if [ -f "$ALWAYS_SCRIPT" ]; then
 else
     echo "($ME) $(date) No .always script."
 fi
-
-# Touch a 'cypher-runner.executed' file (if the IMPORT_DIRECTORY exists)
-# This is used to prevent us from running the '.once' script on re-boot
-# but relies on the IMPORT_DIRECTORY being persisted between reboots.
-if [ -n "$IMPORT_DIRECTORY" ]; then
-  echo "($ME) $(date) Touching $EXECUTED_FILE..."
-  touch "$EXECUTED_FILE"
-fi
+echo "($ME) $(date) Touching $ALWAYS_EXECUTED_FILE..."
+touch "$ALWAYS_EXECUTED_FILE"
 
 echo "($ME) $(date) Finished."

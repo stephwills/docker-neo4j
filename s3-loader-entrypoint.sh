@@ -29,6 +29,22 @@ else
   echo "Preserving existing graph data (GRAPH_WIPE=$GRAPH_WIPE)"
 fi
 
+# Remove the graph debug log if NEO4J_dbms_directories_logs is defined
+if [ -n "$NEO4J_dbms_directories_logs" ]; then
+  DEBUG_FILE="$NEO4J_dbms_directories_logs"/debug.log
+  echo "Removing debug log ($DEBUG_FILE)"
+  rm -f "$DEBUG_FILE" || true
+fi
+
+# Remove any 'always.executed' file.
+# This will be re-created by the graph container
+# when the always script runs.
+ALWAYS_EXECUTED_FILE="$IMPORT_DIRECTORY"/always.executed
+if [ -n "$ALWAYS_EXECUTED_FILE" ]; then
+  echo "Removing always executed ($ALWAYS_EXECUTED_FILE)"
+  rm -f "$ALWAYS_EXECUTED_FILE" || true
+fi
+
 # We only pull down data if it looks like there's no graph database.
 # There's likely to be a database if the directory '/data/dbms' exists -
 # it's created by neo4j. Pulling data when there is a database is pointless.
