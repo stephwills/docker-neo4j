@@ -8,6 +8,7 @@
 #               Typically the data-loader directory
 # GRAPH_WIPE    If 'yes' then all data is erased, forcing
 #               a resync with S3 and a reload of the Graph data
+# CYPHER_ROOT   The path to the cypher script directory (typically /data)
 # POST_SLEEP_S  A value (seconds) to sleep at the end of the script.
 #               this allows the user to inspect the environment prior
 #               to the execution moving to the graph container.
@@ -16,8 +17,9 @@
 : "${AWS_SECRET_ACCESS_KEY?Need to set AWS_SECRET_ACCESS_KEY}"
 : "${AWS_BUCKET?Need to set AWS_BUCKET}"
 : "${AWS_BUCKET_PATH?Need to set AWS_BUCKET_PATH}"
-: "${SYNC_PATH?Need to set SYNC_PATH}"
+: "${CYPHER_ROOT?Need to set CYPHER_ROOT}"
 : "${GRAPH_WIPE?Need to set GRAPH_WIPE}"
+: "${SYNC_PATH?Need to set SYNC_PATH}"
 
 # If GRAPH_WIPE is 'yes' then the /data directory is
 # erased prior to running the S3 sync.
@@ -36,20 +38,25 @@ if [ -n "$NEO4J_dbms_directories_logs" ]; then
   rm -f "$DEBUG_FILE" || true
 fi
 
-# Remove any 'always.executed' file.
-# This will be re-created by the graph container
-# when the always script runs.
-ALWAYS_EXECUTED_FILE="$IMPORT_DIRECTORY"/always.executed
-if [ -n "$ALWAYS_EXECUTED_FILE" ]; then
-  echo "Removing always executed ($ALWAYS_EXECUTED_FILE)"
-  rm -f "$ALWAYS_EXECUTED_FILE" || true
-fi
+# Where are the scripts (and '.executed') files kept?
+CYPHER_PATH="$CYPHER_ROOT/cypher-script"
+echo "Making cypher path directory ($CYPHER_PATH)..."
+mkdir -p "$CYPHER_PATH"
 
-# We only pull down data if it looks like there's no graph database.
-# There's likely to be a database if the directory '/data/dbms' exists -
+# We only pull down data (causing a potential re-build of the database
+# and indexes) if it looks like there's no graph database.
+# There's likely to be a database if the file '/data/data/dbms/auth' exists -
 # it's created by neo4j. Pulling data when there is a database is pointless.
-if [ ! -d "/data/dbms" ]
-then
+if [ ! -f "/data/data/dbms/auth" ]; then
+
+  # Remove any 'always.executed' file.
+  # This will be re-created by the graph container
+  # when the 'always script' finishes.
+  ALWAYS_EXECUTED_FILE="$CYPHER_PATH/always.executed"
+  if [ -n "$ALWAYS_EXECUTED_FILE" ]; then
+    echo "Removing always executed file ($ALWAYS_EXECUTED_FILE)"
+    rm -f "$ALWAYS_EXECUTED_FILE" || true
+  fi
 
   echo "Downloading import data..."
 
@@ -83,37 +90,25 @@ then
 
 else
 
-  echo "Skipping import download - database appears to exist"
+  echo "Skipping download - database appears to exist"
 
 fi
-
-# Just in case the above fails, at least create a data directory
-# that we and the group can write to.
-# If we don't neo4j just crashes.
-mkdir -p /data/data
-chmod 0775 /data/data
 
 # If there's 'once' or 'always' content then place it
 # in the expected location for the corresponding cypher scripts.
-cypher_path="$CYPHER_ROOT/cypher-script"
-if [ "$CYPHER_ONCE_CONTENT" ]
-then
+if [ "$CYPHER_ONCE_CONTENT" ]; then
   cypher_file=cypher-script.once
-  echo "Writing $cypher_path/$cypher_file..."
-  mkdir -p "$cypher_path"
-  echo "$CYPHER_ONCE_CONTENT" > "$cypher_path/$cypher_file"
+  echo "Writing $CYPHER_PATH/$cypher_file..."
+  echo "$CYPHER_ONCE_CONTENT" > "$CYPHER_PATH/$cypher_file"
 fi
-if [ "$CYPHER_ALWAYS_CONTENT" ]
-then
+if [ "$CYPHER_ALWAYS_CONTENT" ]; then
   cypher_file=cypher-script.always
-  echo "Writing $cypher_path/$cypher_file..."
-  mkdir -p "$cypher_path"
-  echo "$CYPHER_ALWAYS_CONTENT" > "$cypher_path/$cypher_file"
+  echo "Writing $CYPHER_PATH/$cypher_file..."
+  echo "$CYPHER_ALWAYS_CONTENT" > "$CYPHER_PATH/$cypher_file"
 fi
 
 # Has a POST_SLEEP_S been defined?
-if [ "$POST_SLEEP_S" ]
-then
+if [ "$POST_SLEEP_S" ]; then
   echo "POST_SLEEP_S=$POST_SLEEP_S sleeping..."
   sleep "$POST_SLEEP_S"
   echo "Slept."

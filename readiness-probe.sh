@@ -5,44 +5,49 @@
 #
 # We assume the following environment variables exist: -
 #
+#   CYPHER_ROOT
 #   NEO4J_dbms_directories_logs
-#   IMPORT_DIRECTORY
 #
 # This code inspects the debug log looking for a line that
 # contains 'Database graph.db is ready'. The file is expected
 # to be called $NEO4J_dbms_directories_logs/debug.log
 #
-# If the line is found then we check for the 'first' and 'always' script
-# execution.
+# If the line is found then we check for 'once' and 'always' script
+# execution by expecting a '.executed' file in the cypher-script
+# directory as each one completes. The 'once' runs on the first launch
+# of the Pod and the 'always' for every Pod start.
 
-# Not started if there's no file
-DEBUG_FILE=$NEO4J_dbms_directories_logs/debug.log
+CYPHER_PATH="$CYPHER_ROOT/cypher-script"
+
+# Not started if there's no debug file.
+# It's removed by the loader each time the Pod restarts.
+DEBUG_FILE="$NEO4J_dbms_directories_logs/debug.log"
 if [ ! -f "$DEBUG_FILE" ]; then
-  echo "Database not ready (no $DEBUG_FILE)"
+  echo "Not ready - no debug file ($DEBUG_FILE)"
   exit 1
 fi
 
-# Does the line exist?
+# Does a 'ready' line exist?
 READY=$(grep -c "Database graph.db is ready." < "$DEBUG_FILE")
 if [ "$READY" -eq "0" ]; then
-  echo "Database not ready (according to $DEBUG_FILE)"
+  echo "Not ready - according to debug file ($DEBUG_FILE)"
   exit 1
 fi
 
-# If there's no 'once' we're not 'live'
-ONCE_EXECUTED_FILE="$IMPORT_DIRECTORY"/once.executed
+# If there's no 'once.executed' we're not 'live'
+ONCE_EXECUTED_FILE="$CYPHER_PATH/once.executed"
 if [ ! -f "$ONCE_EXECUTED_FILE" ]; then
-  echo "Database not ready (no $ONCE_EXECUTED_FILE)"
+  echo "Not ready - no $ONCE_EXECUTED_FILE"
   exit 1
 fi
 
-# If there's no 'always' we're not 'live'
-ALWAYS_EXECUTED_FILE="$IMPORT_DIRECTORY"/always.executed
+# If there's no 'always.executed' we're not 'live'
+ALWAYS_EXECUTED_FILE="$CYPHER_PATH/always.executed"
 if [ ! -f "$ALWAYS_EXECUTED_FILE" ]; then
-  echo "Database not ready (no $ALWAYS_EXECUTED_FILE)"
+  echo "Not ready - no $ALWAYS_EXECUTED_FILE"
   exit 1
 fi
 
 # Graph Database is 'Ready' if we get here...
 # Nothing to do - return value of zero is all that's needed.
-echo "Database ready"
+echo "Ready"

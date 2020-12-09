@@ -10,7 +10,6 @@
 #   CYPHER_PRE_NEO4J_SLEEP
 #   CYPHER_ROOT
 #   GRAPH_PASSWORD
-#   IMPORT_DIRECTORY
 #   NEO4J_dbms_directories_data
 
 ME=cypher-runner.sh
@@ -23,18 +22,17 @@ then
     exit 0
 fi
 
-echo "($ME) $(date) Starting (IMPORT_DIRECTORY=$IMPORT_DIRECTORY)..."
-
 # The 'once' and 'always' cypher scripts
-ONCE_SCRIPT="$CYPHER_ROOT"/cypher-script/cypher-script.once
-ALWAYS_SCRIPT="$CYPHER_ROOT"/cypher-script/cypher-script.always
+CYPHER_PATH="$CYPHER_ROOT/cypher-script"
+ONCE_SCRIPT="$CYPHER_PATH/cypher-script.once"
+ALWAYS_SCRIPT="$CYPHER_PATH/cypher-script.always"
 
 # Files created (touched) when the 'first' script is run
 # and when the 'always' script is run. These files are created
 # even if there are no associated scripts. The 'always' file
 # is erased each time we're executed and re-created after it's re-executed.
-ONCE_EXECUTED_FILE="$IMPORT_DIRECTORY"/once.executed
-ALWAYS_EXECUTED_FILE="$IMPORT_DIRECTORY"/always.executed
+ONCE_EXECUTED_FILE="$CYPHER_PATH/once.executed"
+ALWAYS_EXECUTED_FILE="$CYPHER_PATH/always.executed"
 
 # Always remove the ALWAYS_EXECUTED_FILE.
 # We re-create this when we've run the always script
@@ -58,14 +56,15 @@ sleep "$SLEEP_TIME"
 # ...but only if it looks like it's already been done.
 #
 # i.e. if the 'dbms/auth' file contains 'password_change_required'.
-# i.e. looks like this...
+# i.e. if it looks like this...
+#
 #  'neo4j:SHA-256,C84A[...]:password_change_required'
 #
 # Note: There's a race-condition here. If we do this too early
 #       it's effect is lost - it must be done once we believe
 #       the DB is running. So CYPHER_PRE_NEO4J_SLEEP must be long enough
 #       to ensure the graph is running.
-NEEDS_PASSWORD=$(cat "$NEO4J_dbms_directories_data/dbms/auth" | grep password_change_required | wc -l)
+NEEDS_PASSWORD=$(grep -c password_change_required < "$NEO4J_dbms_directories_data/dbms/auth")
 if [ "$NEEDS_PASSWORD" -eq "1" ]; then
   echo "($ME) $(date) Setting neo4j password..."
   /var/lib/neo4j/bin/cypher-shell -u neo4j -p neo4j "CALL dbms.changePassword('$GRAPH_PASSWORD')" || true
@@ -76,7 +75,7 @@ fi
 if [[ ! -f "$ONCE_EXECUTED_FILE" && -f "$ONCE_SCRIPT" ]]; then
     echo "($ME) $(date) Trying $ONCE_SCRIPT..."
     echo "[SCRIPT BEGIN]"
-    cat $ONCE_SCRIPT
+    cat "$ONCE_SCRIPT"
     echo "[SCRIPT END]"
     until /var/lib/neo4j/bin/cypher-shell -u neo4j -p "$GRAPH_PASSWORD" < "$ONCE_SCRIPT"
     do
@@ -85,7 +84,7 @@ if [[ ! -f "$ONCE_EXECUTED_FILE" && -f "$ONCE_SCRIPT" ]]; then
     done
     echo "($ME) $(date) .once script executed."
 else
-    echo "($ME) $(date) No .once script (or restarted)."
+    echo "($ME) $(date) No .once script (or not first incarnation)."
 fi
 echo "($ME) $(date) Touching $ONCE_EXECUTED_FILE..."
 touch "$ONCE_EXECUTED_FILE"
@@ -94,7 +93,7 @@ touch "$ONCE_EXECUTED_FILE"
 if [ -f "$ALWAYS_SCRIPT" ]; then
     echo "($ME) $(date) Trying $ALWAYS_SCRIPT..."
     echo "[SCRIPT BEGIN]"
-    cat $ALWAYS_SCRIPT
+    cat "$ALWAYS_SCRIPT"
     echo "[SCRIPT END]"
     until /var/lib/neo4j/bin/cypher-shell -u neo4j -p "$GRAPH_PASSWORD" < "$ALWAYS_SCRIPT"
     do
