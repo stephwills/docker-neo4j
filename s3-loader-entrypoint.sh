@@ -86,6 +86,10 @@ if [ ! -f "/data/data/dbms/auth" ]; then
       "/data/${SYNC_PATH}/${PATH_OBJECT}"
   done
 
+  # Where will the database appear?
+  echo "Making ultimate data directory (/data/data)..."
+  mkdir -p "/data/data"
+
   echo "Download complete."
 
 else
