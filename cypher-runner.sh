@@ -52,6 +52,14 @@ SLEEP_TIME=${CYPHER_PRE_NEO4J_SLEEP:-60}
 echo "($ME) $(date) Pre-cypher pause ($SLEEP_TIME seconds)..."
 sleep "$SLEEP_TIME"
 
+# Must wait for the 'auth' file.
+# If we continue when this isn't present
+# then the password will fail to be set.
+until [ -f "$NEO4J_dbms_directories_data/dbms/auth" ]; do
+  echo "($ME) $(date) Waiting for $NEO4J_dbms_directories_data/dbms/auth..."
+  sleep 4
+done
+
 # Attempt to change the initial password...
 # ...but only if it looks like it's already been done.
 #
