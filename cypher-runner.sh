@@ -57,7 +57,7 @@ sleep "$SLEEP_TIME"
 # then the password will fail to be set.
 until [ -f "$NEO4J_dbms_directories_data/dbms/auth" ]; do
   echo "($ME) $(date) Waiting for $NEO4J_dbms_directories_data/dbms/auth..."
-  sleep 4
+  sleep 12
 done
 
 # Attempt to change the initial password...
