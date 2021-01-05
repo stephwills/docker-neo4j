@@ -80,11 +80,14 @@ by comments that begin `IM-BEGIN` and end with `IM-END`.
 ## Plugins
 We've added the following plugins to the image: -
 
-1.  **Neo4j Graph Data Science Library** from the [community] section of the
-    download-centre
+1.  **Neo4j Graph Data Science Library** [gds] from the [community] section of
+    the download-centre
     (formally the graph-algorithms-algo library we used in our 3.5 image)
 2.  **Neo4j Apoc Procedure**, a collection of useful Neo4j Procedures
     from the [apoc] distribution on Maven.
+
+>   The changes to `dbms.security.procedures.unrestricted` take place in the
+    **Dockerfile** where it's written to `/var/lib/neo4j/conf/neo4j.conf`.
 
 ## The enterprise container image
 Although a build is made available for the Enterprise container
@@ -100,5 +103,6 @@ The role deploys an S3-based loader prior to spinning-up the neo4j instance.
 ---
 
 [apoc]: https://mvnrepository.com/artifact/org.neo4j.procedure/apoc
+[gds]: https://neo4j.com/docs/graph-data-science/current/installation/
 [community]: https://neo4j.com/download-center/#community
 [warming up]: https://neo4j-contrib.github.io/neo4j-apoc-procedures/3.5/operational/warmup/
