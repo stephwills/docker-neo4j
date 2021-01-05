@@ -18,6 +18,7 @@
 : "${AWS_BUCKET?Need to set AWS_BUCKET}"
 : "${AWS_BUCKET_PATH?Need to set AWS_BUCKET_PATH}"
 : "${CYPHER_ROOT?Need to set CYPHER_ROOT}"
+: "${EXTENSION_SCRIPT?Need to set EXTENSION_SCRIPT}"
 : "${GRAPH_WIPE?Need to set GRAPH_WIPE}"
 : "${SYNC_PATH?Need to set SYNC_PATH}"
 
@@ -85,6 +86,14 @@ if [ ! -f "/data/data/dbms/auth" ]; then
       "s3://${AWS_BUCKET}/${AWS_BUCKET_PATH}/${PATH_OBJECT}" \
       "/data/${SYNC_PATH}/${PATH_OBJECT}"
   done
+
+  # Patch 'EXTENSION_SCRIPT'
+  # Here we update any 'out of date' content in the loader.
+  # For older scripts we used '--ignore-missing-nodes'
+  # which is replaced by '--skip-bad-relationships'.
+  echo "Patching ${EXTENSION_SCRIPT}..."
+  sed 's/ignore-missing-nodes/skip-bad-relationships/' "${EXTENSION_SCRIPT}" > /tmp/load.sh
+  cp /tmp/load.sh "${EXTENSION_SCRIPT}"
 
   # Where will the database appear?
   echo "Making ultimate data directory (/data/data)..."
