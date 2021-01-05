@@ -40,14 +40,14 @@ with the following docker command: -
 
 ## Running post-DB cypher commands
 The image contains the ability to run a series of cypher commands
-after the database has started. It achieves this by running a a provided
+after the database has started. It achieves this by running a provided
 `cypher-runner.sh` script located in this image's `/cypher-runner` directory.
 This script is executed towards the end of the `docker-entrypoint.sh`
 and runs in the background until the provided cypher commands have been
 executed.
 
-All you need to do to run your one early cypher commands
-is provide them in the either a `/cypher-runner/cypher-script.once`
+All you need to do to run your own early cypher commands
+is to provide them in either a `/cypher-runner/cypher-script.once`
 or `/cypher-runner/cypher-script.always` file and provide
 the neo4j credentials.
 

@@ -95,7 +95,7 @@ function check_mounted_folder_readable
     fi
 }
 
-function check_mounted_folder_with_chown
+function check_mounted_folder_writable_with_chown
 {
 # The /data and /log directory are a bit different because they are very likely to be mounted by the user but not
 # necessarily writable.
@@ -213,6 +213,20 @@ function install_neo4j_labs_plugins
   rm "${_old_config}"
 }
 
+function add_setting_to_conf
+{
+    local _setting=${1}
+    local _value=${2}
+    local _neo4j_home=${3}
+
+    if grep -q -F "${_setting}=" "${_neo4j_home}"/conf/neo4j.conf; then
+        # Remove any lines containing the setting already
+        sed --in-place "/^${_setting}=.*/d" "${_neo4j_home}"/conf/neo4j.conf
+    fi
+    # Then always append setting to file
+    echo "${_setting}=${_value}" >> "${_neo4j_home}"/conf/neo4j.conf
+}
+
 # If we're running as root, then run as the neo4j user. Otherwise
 # docker is running with --user and we simply use that user.  Note
 # that su-exec, despite its name, does not replicate the functionality
@@ -234,15 +248,12 @@ readonly groups
 readonly exec_cmd
 
 
-# Need to chown the home directory - but a user might have mounted a
-# volume here (notably a conf volume). So take care not to chown
-# volumes (stuff not owned by neo4j)
+# Need to chown the home directory
 if running_as_root; then
-    # Non-recursive chown for the base directory
-    chown "${userid}":"${groupid}" "${NEO4J_HOME}"
+    chown -R "${userid}":"${groupid}" "${NEO4J_HOME}"
     chmod 700 "${NEO4J_HOME}"
-    find "${NEO4J_HOME}" -mindepth 1 -maxdepth 1 -type d -exec chown -R ${userid}:${groupid} {} \;
     find "${NEO4J_HOME}" -mindepth 1 -maxdepth 1 -type d -exec chmod -R 700 {} \;
+    find "${NEO4J_HOME}"/conf -type f -exec chmod -R 600 {} \;
 fi
 
 # Only prompt for license agreement if command contains "neo4j" in it
@@ -284,7 +295,6 @@ fi
 # Backward compatibility - map old hardcoded env variables into new naming convention (if they aren't set already)
 # Set some to default values if unset
 : ${NEO4J_dbms_tx__log_rotation_retention__policy:=${NEO4J_dbms_txLog_rotation_retentionPolicy:-"100M size"}}
-: ${NEO4J_wrapper_java_additional:=${NEO4J_UDC_SOURCE:-"-Dneo4j.ext.udc.source=docker"}}
 : ${NEO4J_dbms_unmanaged__extension__classes:=${NEO4J_dbms_unmanagedExtensionClasses:-}}
 : ${NEO4J_dbms_allow__format__migration:=${NEO4J_dbms_allowFormatMigration:-}}
 : ${NEO4J_dbms_connectors_default__advertised__address:=${NEO4J_dbms_connectors_defaultAdvertisedAddress:-}}
@@ -316,56 +326,51 @@ unset NEO4J_dbms_txLog_rotation_retentionPolicy NEO4J_UDC_SOURCE \
     NEO4J_causalClustering_raftAdvertisedAddress
 
 if [ -d /conf ]; then
-    if secure_mode_enabled; then
-	    check_mounted_folder_readable "/conf"
-    fi
-    find /conf -type f -exec cp {} "${NEO4J_HOME}"/conf \;
+    check_mounted_folder_readable "/conf"
+    rm -rf "${NEO4J_HOME}"/conf/*
+    find /conf -type f -exec cp --preserve=ownership,mode {} "${NEO4J_HOME}"/conf \;
 fi
 
 if [ -d /ssl ]; then
-    if secure_mode_enabled; then
-    	check_mounted_folder_readable "/ssl"
-    fi
-    : ${NEO4J_dbms_directories_certificates:="/ssl"}
+    check_mounted_folder_readable "/ssl"
+    rm -rf "${NEO4J_HOME}"/certificates
+    ln -s /ssl "${NEO4J_HOME}"/certificates
 fi
 
 if [ -d /plugins ]; then
-    if secure_mode_enabled; then
-        if [[ ! -z "${NEO4JLABS_PLUGINS:-}" ]]; then
-            # We need write permissions
-            check_mounted_folder_with_chown "/plugins"
-        fi
-        check_mounted_folder_readable "/plugins"
+    if [[ -n "${NEO4JLABS_PLUGINS:-}" ]]; then
+        # We need write permissions
+        check_mounted_folder_writable_with_chown "/plugins"
     fi
+    check_mounted_folder_readable "/plugins"
     : ${NEO4J_dbms_directories_plugins:="/plugins"}
 fi
 
 if [ -d /import ]; then
-    if secure_mode_enabled; then
-        check_mounted_folder_readable "/import"
-    fi
+    check_mounted_folder_readable "/import"
     : ${NEO4J_dbms_directories_import:="/import"}
 fi
 
 if [ -d /metrics ]; then
-    if secure_mode_enabled; then
-        check_mounted_folder_readable "/metrics"
-    fi
+    check_mounted_folder_writable_with_chown "/metrics"
     : ${NEO4J_dbms_directories_metrics:="/metrics"}
 fi
 
 if [ -d /logs ]; then
-    check_mounted_folder_with_chown "/logs"
+    check_mounted_folder_writable_with_chown "/logs"
     : ${NEO4J_dbms_directories_logs:="/logs"}
 fi
 
 if [ -d /data ]; then
-    check_mounted_folder_with_chown "/data"
+    check_mounted_folder_writable_with_chown "/data"
     if [ -d /data/databases ]; then
-        check_mounted_folder_with_chown "/data/databases"
+        check_mounted_folder_writable_with_chown "/data/databases"
     fi
     if [ -d /data/dbms ]; then
-        check_mounted_folder_with_chown "/data/dbms"
+        check_mounted_folder_writable_with_chown "/data/dbms"
+    fi
+    if [ -d /data/transactions ]; then
+        check_mounted_folder_writable_with_chown "/data/transactions"
     fi
 fi
 
@@ -375,10 +380,7 @@ declare -A ENTERPRISE
 COMMUNITY=(
      [dbms.tx_log.rotation.retention_policy]="100M size"
      [dbms.memory.pagecache.size]="512M"
-     [dbms.connectors.default_listen_address]="0.0.0.0"
-     [dbms.connector.https.listen_address]="0.0.0.0:7473"
-     [dbms.connector.http.listen_address]="0.0.0.0:7474"
-     [dbms.connector.bolt.listen_address]="0.0.0.0:7687"
+     [dbms.default_listen_address]="0.0.0.0"
 )
 
 ENTERPRISE=(
@@ -401,36 +403,25 @@ for conf in ${!ENTERPRISE[@]} ; do
     fi
 done
 
-#The udc.source=tarball should be replaced by udc.source=docker in both dbms.jvm.additional and wrapper.java.additional
-#Using sed to replace only this part will allow the custom configs to be added after, separated by a ,.
-if grep -q "udc.source=tarball" "${NEO4J_HOME}"/conf/neo4j.conf; then
-     sed -i -e 's/udc.source=tarball/udc.source=docker/g' "${NEO4J_HOME}"/conf/neo4j.conf
-fi
-#The udc.source should always be set to docker by default and we have to allow also custom configs to be added after that.
-#In this case, this piece of code helps to add the default value and a , to support custom configs after.
-if ! grep -q "dbms.jvm.additional=-Dunsupported.dbms.udc.source=docker" "${NEO4J_HOME}"/conf/neo4j.conf; then
-  sed -i -e 's/dbms.jvm.additional=/dbms.jvm.additional=-Dunsupported.dbms.udc.source=docker,/g' "${NEO4J_HOME}"/conf/neo4j.conf
-fi
-
+# save NEO4J_HOME and NEO4J_AUTH to temp variables that don't begin with NEO4J_ so they don't get added to the conf
+temp_neo4j_home="${NEO4J_HOME}"
+temp_neo4j_auth="${NEO4J_AUTH:-}"
 # list env variables with prefix NEO4J_ and create settings from them
-unset NEO4J_AUTH NEO4J_SHA256 NEO4J_TARBALL
+unset NEO4J_AUTH NEO4J_SHA256 NEO4J_TARBALL NEO4J_EDITION NEO4J_ACCEPT_LICENSE_AGREEMENT NEO4J_HOME
 for i in $( set | grep ^NEO4J_ | awk -F'=' '{print $1}' | sort -rn ); do
-    setting=$(echo ${i} | sed 's|^NEO4J_||' | sed 's|_|.|g' | sed 's|\.\.|_|g')
-    value=$(echo ${!i})
+    setting=$(echo "${i}" | sed 's|^NEO4J_||' | sed 's|_|.|g' | sed 's|\.\.|_|g')
+    value=$(echo "${!i}")
     # Don't allow settings with no value or settings that start with a number (neo4j converts settings to env variables and you cannot have an env variable that starts with a number)
     if [[ -n ${value} ]]; then
         if [[ ! "${setting}" =~ ^[0-9]+.*$ ]]; then
-            if grep -q -F "${setting}=" "${NEO4J_HOME}"/conf/neo4j.conf; then
-                # Remove any lines containing the setting already
-                sed --in-place "/^${setting}=.*/d" "${NEO4J_HOME}"/conf/neo4j.conf
-            fi
-            # Then always append setting to file
-            echo "${setting}=${value}" >> "${NEO4J_HOME}"/conf/neo4j.conf
+            add_setting_to_conf "${setting}" "${value}" "${temp_neo4j_home}"
         else
             echo >&2 "WARNING: ${setting} not written to conf file because settings that start with a number are not permitted"
         fi
     fi
 done
+export NEO4J_HOME="${temp_neo4j_home}"
+unset temp_neo4j_home
 
 
 if [[ ! -z "${NEO4JLABS_PLUGINS:-}" ]]; then
@@ -438,15 +429,7 @@ if [[ ! -z "${NEO4JLABS_PLUGINS:-}" ]]; then
   install_neo4j_labs_plugins
 fi
 
-# (IM-BEGIN) Be much more public about running the extension script.
-# i.e. echo begin and end.
-echo "EXTENSION_SCRIPT=${EXTENSION_SCRIPT:-}"
-if [ -f "${EXTENSION_SCRIPT:-}" ]; then
-  echo "(begin) ${EXTENSION_SCRIPT}"
-  . ${EXTENSION_SCRIPT}
-  echo "(end) ${EXTENSION_SCRIPT}"
-fi
-# (IM-END)
+[ -f "${EXTENSION_SCRIPT:-}" ] && . ${EXTENSION_SCRIPT}
 
 if [ "${cmd}" == "dump-config" ]; then
     if ! is_writable "/conf"; then
@@ -457,51 +440,15 @@ if [ "${cmd}" == "dump-config" ]; then
     exit 0
 fi
 
-# (IM-BEGIN) Set a default data directory
-NEO4J_dbms_directories_data=${NEO4J_dbms_directories_data:-/data}
-# (IM-END)
-
-# (IM-BEGIN) Change ownership and permissions in the the data and logs dirs
-# now that (maybe) an initial password has been set
-if [[ "$(id -u)" = "0" ]]; then
-  echo "(touch debug logs) at ${NEO4J_dbms_directories_logs}..."
-  touch ${NEO4J_dbms_directories_logs}/debug.log
-  echo "(touched)"
-
-  echo "(chmod/chown)..."
-  echo "id=$(id -u)"
-  echo "data at ${NEO4J_dbms_directories_data}"
-  chmod -R 777 ${NEO4J_dbms_directories_data} || true
-  chown -R "neo4j:neo4j" ${NEO4J_dbms_directories_data} || true
-  echo "logs at ${NEO4J_dbms_directories_logs}"
-  chmod -R 777 ${NEO4J_dbms_directories_logs} || true
-  chown -R "neo4j:neo4j" ${NEO4J_dbms_directories_logs} || true
-  echo "(chmod/chown done)"
-
-  echo "(listing)"
-  echo "(listing /)"
-  ls -l /
-  echo "(listing ${NEO4J_dbms_directories_data})"
-  ls -l ${NEO4J_dbms_directories_data}
-  echo "(listing ${NEO4J_dbms_directories_logs})"
-  ls -l ${NEO4J_dbms_directories_logs}
-  echo "(listed)"
-fi
-# (IM-END)
-
-# (IM-BEGIN) Run our background cypher-runner...
-echo "(starting cypher-runner)..."
-/cypher-runner/cypher-runner.sh &
-echo "(started)"
-echo "cmd=${cmd}"
-echo "exec_cmd=${exec_cmd}"
-# (IM-END)
-
 # Use su-exec to drop privileges to neo4j user
 # Note that su-exec, despite its name, does not replicate the
 # functionality of exec, so we need to use both
 if [ "${cmd}" == "neo4j" ]; then
-  ${exec_cmd} neo4j console
+    if [ "${EXTENDED_CONF+"yes"}" == "yes" ]; then
+        ${exec_cmd} neo4j console --expand-commands
+    else
+        ${exec_cmd} neo4j console
+    fi
 else
   ${exec_cmd} "$@"
 fi
