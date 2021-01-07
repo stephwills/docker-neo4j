@@ -429,7 +429,15 @@ if [[ ! -z "${NEO4JLABS_PLUGINS:-}" ]]; then
   install_neo4j_labs_plugins
 fi
 
-[ -f "${EXTENSION_SCRIPT:-}" ] && . ${EXTENSION_SCRIPT}
+# (IM-BEGIN) Be much more public about running the extension script.
+# i.e. echo begin and end.
+echo "EXTENSION_SCRIPT=${EXTENSION_SCRIPT:-}"
+if [ -f "${EXTENSION_SCRIPT:-}" ]; then
+  echo "(begin) ${EXTENSION_SCRIPT}"
+  . ${EXTENSION_SCRIPT}
+  echo "(end) ${EXTENSION_SCRIPT}"
+fi
+# (IM-END)
 
 if [ "${cmd}" == "dump-config" ]; then
     if ! is_writable "/conf"; then
@@ -439,6 +447,46 @@ if [ "${cmd}" == "dump-config" ]; then
     echo "Config Dumped"
     exit 0
 fi
+
+# (IM-BEGIN) Set a default data directory
+NEO4J_dbms_directories_data=${NEO4J_dbms_directories_data:-/data}
+# (IM-END)
+
+# (IM-BEGIN) Change ownership and permissions in the the data and logs dirs
+# now that (maybe) an initial password has been set
+if [[ "$(id -u)" = "0" ]]; then
+  echo "(touch debug logs) at ${NEO4J_dbms_directories_logs}..."
+  touch ${NEO4J_dbms_directories_logs}/debug.log
+  echo "(touched)"
+
+  echo "(chmod/chown)..."
+  echo "id=$(id -u)"
+  echo "data at ${NEO4J_dbms_directories_data}"
+  chmod -R 777 ${NEO4J_dbms_directories_data} || true
+  chown -R "neo4j:neo4j" ${NEO4J_dbms_directories_data} || true
+  echo "logs at ${NEO4J_dbms_directories_logs}"
+  chmod -R 777 ${NEO4J_dbms_directories_logs} || true
+  chown -R "neo4j:neo4j" ${NEO4J_dbms_directories_logs} || true
+  echo "(chmod/chown done)"
+
+  echo "(listing)"
+  echo "(listing /)"
+  ls -l /
+  echo "(listing ${NEO4J_dbms_directories_data})"
+  ls -l ${NEO4J_dbms_directories_data}
+  echo "(listing ${NEO4J_dbms_directories_logs})"
+  ls -l ${NEO4J_dbms_directories_logs}
+  echo "(listed)"
+fi
+# (IM-END)
+
+# (IM-BEGIN) Run our background cypher-runner...
+echo "(starting cypher-runner)..."
+/cypher-runner/cypher-runner.sh &
+echo "(started)"
+echo "cmd=${cmd}"
+echo "exec_cmd=${exec_cmd}"
+# (IM-END)
 
 # Use su-exec to drop privileges to neo4j user
 # Note that su-exec, despite its name, does not replicate the
