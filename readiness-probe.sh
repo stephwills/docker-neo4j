@@ -28,7 +28,7 @@ if [ ! -f "$DEBUG_FILE" ]; then
 fi
 
 # Does a 'ready' line exist?
-READY=$(grep -c "Database graph.db is ready." < "$DEBUG_FILE")
+READY=$(grep -c "Database.*graph[.]db.* is ready." < "$DEBUG_FILE")
 if [ "$READY" -eq "0" ]; then
   echo "Not ready - according to debug file ($DEBUG_FILE)"
   exit 1
