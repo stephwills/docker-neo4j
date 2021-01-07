@@ -10,7 +10,6 @@
 #   CYPHER_PRE_NEO4J_SLEEP
 #   CYPHER_ROOT
 #   GRAPH_PASSWORD
-#   NEO4J_dbms_directories_data
 
 ME=cypher-runner.sh
 
@@ -39,7 +38,6 @@ ALWAYS_EXECUTED_FILE="$CYPHER_PATH/always.executed"
 # (which happens every time we start)
 rm -f "$ALWAYS_EXECUTED_FILE" || true
 
-echo "($ME) $(date) NEO4J_dbms_directories_data=$NEO4J_dbms_directories_data"
 echo "($ME) $(date) GRAPH_PASSWORD=$GRAPH_PASSWORD"
 echo "($ME) $(date) ONCE_SCRIPT=$ONCE_SCRIPT"
 echo "($ME) $(date) ALWAYS_SCRIPT=$ALWAYS_SCRIPT"
@@ -51,32 +49,6 @@ echo "($ME) $(date) ALWAYS_EXECUTED_FILE=$ALWAYS_EXECUTED_FILE"
 SLEEP_TIME=${CYPHER_PRE_NEO4J_SLEEP:-60}
 echo "($ME) $(date) Pre-cypher pause ($SLEEP_TIME seconds)..."
 sleep "$SLEEP_TIME"
-
-# Must wait for the 'auth' file.
-# If we continue when this isn't present
-# then the password will fail to be set.
-until [ -f "$NEO4J_dbms_directories_data/dbms/auth" ]; do
-  echo "($ME) $(date) Waiting for $NEO4J_dbms_directories_data/dbms/auth..."
-  sleep 12
-done
-
-# Attempt to change the initial password...
-# ...but only if it looks like it's already been done.
-#
-# i.e. if the 'dbms/auth' file contains 'password_change_required'.
-# i.e. if it looks like this...
-#
-#  'neo4j:SHA-256,C84A[...]:password_change_required'
-#
-# Note: There's a race-condition here. If we do this too early
-#       it's effect is lost - it must be done once we believe
-#       the DB is running. So CYPHER_PRE_NEO4J_SLEEP must be long enough
-#       to ensure the graph is running.
-NEEDS_PASSWORD=$(grep -c password_change_required < "$NEO4J_dbms_directories_data/dbms/auth")
-if [ "$NEEDS_PASSWORD" -eq "1" ]; then
-  echo "($ME) $(date) Setting neo4j password..."
-  /var/lib/neo4j/bin/cypher-shell -u neo4j -p neo4j "CALL dbms.changePassword('$GRAPH_PASSWORD')" || true
-fi
 
 # Run the ONCE_SCRIPT
 # (if the ONCE_EXECUTED_FILE is not present)...

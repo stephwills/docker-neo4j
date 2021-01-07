@@ -46,9 +46,10 @@ mkdir -p "$CYPHER_PATH"
 
 # We only pull down data (causing a potential re-build of the database
 # and indexes) if it looks like there's no graph database.
-# There's likely to be a database if the file '/data/data/dbms/auth' exists -
+# There's likely to be a database if the directory
+# '/data/data/databases/graph.db' exists -
 # it's created by neo4j. Pulling data when there is a database is pointless.
-if [ ! -f "/data/data/dbms/auth" ]; then
+if [ ! -d "/data/data/databases/graph.db" ]; then
 
   # Remove any 'always.executed' file.
   # This will be re-created by the graph container
