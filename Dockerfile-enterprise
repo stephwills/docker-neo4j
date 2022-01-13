@@ -1,4 +1,4 @@
-FROM neo4j:4.2.1-enterprise
+FROM neo4j:4.4.2-enterprise
 
 COPY ./docker-entrypoint.sh /
 COPY ./readiness-probe.sh /

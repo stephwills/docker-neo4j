@@ -1,4 +1,4 @@
-FROM python:3.8.6-alpine3.12
+FROM python:3.9.9-alpine3.15
 
 # Force the binary layer of the stdout and stderr streams
 # to be unbuffered
