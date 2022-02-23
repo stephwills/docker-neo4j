@@ -19,8 +19,8 @@ ME=cypher-runner.sh
 # The user is expected to be 'neo4j'.
 if [ -z "$GRAPH_PASSWORD" ]
 then
-    echo "($ME) $(date) No GRAPH_PASSWORD. Can't run without this."
-    exit 0
+  echo "($ME) $(date) No GRAPH_PASSWORD. Can't run without this."
+  exit 0
 fi
 
 # The 'once' and 'always' cypher scripts
@@ -65,53 +65,66 @@ until [ -f "$DEBUG_FILE" ]; do
   sleep "$ACTION_SLEEP_TIME"
 done
 
-# Wait until a 'ready' line exists in the debug log...
+# Wait until a line containing the expected 'ready' message or
+# 'java.lang.RuntimeException' exists in the debug log...
 echo "($ME) $(date) Checking ready line in $DEBUG_FILE..."
 READY=$(grep -c "Database.*graph[.]db.* is ready." < "$DEBUG_FILE")
-until [ "$READY" -eq "1" ]; do
+EXCEPTION=$(grep -c "java[.]lang[.]RuntimeException" < "$DEBUG_FILE")
+while [[ "$READY" -eq "0" && "$EXCEPTION" -eq "0" ]]; do
   echo "($ME) $(date) Waiting for ready line in $DEBUG_FILE..."
   sleep "$ACTION_SLEEP_TIME"
   READY=$(grep -c "Database.*graph[.]db.* is ready." < "$DEBUG_FILE")
+  EXCEPTION=$(grep -c "java[.]lang[.]RuntimeException" < "$DEBUG_FILE")
 done
 
+# Leave if we've seen an exception in the log.
+# This is bad and indicates the data directory may be corrupt/incomplete.
+if [[ "$EXCEPTION" -ne "0" ]]; then
+  echo "($ME) $(date) ERROR: Found java.lang.RuntimeException in $DEBUG_FILE"
+  echo "($ME) $(date) It's unsafe to continue the cypher runner. Leaving..."
+  exit 0
+fi
+
+# Looks like initial DB startup is OK.
+# Pause before running the first and always scripts.
 echo "($ME) $(date) Post ready pause..."
 sleep "$ACTION_SLEEP_TIME"
 
 # Run the ONCE_SCRIPT
 # (if the ONCE_EXECUTED_FILE is not present)...
 if [[ ! -f "$ONCE_EXECUTED_FILE" && -f "$ONCE_SCRIPT" ]]; then
-    echo "($ME) $(date) Trying $ONCE_SCRIPT..."
-    echo "[SCRIPT BEGIN]"
-    cat "$ONCE_SCRIPT"
-    echo "[SCRIPT END]"
-    touch "$ONCE_STARTED_FILE"
-    until /var/lib/neo4j/bin/cypher-shell -u neo4j -p "$GRAPH_PASSWORD" < "$ONCE_SCRIPT"
-    do
-        echo "($ME) $(date) No joy with .once, waiting and trying again..."
-        sleep "$ACTION_SLEEP_TIME"
-    done
-    echo "($ME) $(date) .once script executed."
+  echo "($ME) $(date) Trying $ONCE_SCRIPT..."
+  echo "[SCRIPT BEGIN]"
+  cat "$ONCE_SCRIPT"
+  echo "[SCRIPT END]"
+  touch "$ONCE_STARTED_FILE"
+  until /var/lib/neo4j/bin/cypher-shell -u neo4j -p "$GRAPH_PASSWORD" < "$ONCE_SCRIPT"
+  do
+    echo "($ME) $(date) No joy with .once, waiting and trying again..."
+    sleep "$ACTION_SLEEP_TIME"
+  done
+  echo "($ME) $(date) .once script executed."
 else
-    echo "($ME) $(date) No .once script (or not first incarnation)."
+  echo "($ME) $(date) No .once script (or not first incarnation)."
 fi
 echo "($ME) $(date) Touching $ONCE_EXECUTED_FILE..."
 touch "$ONCE_EXECUTED_FILE"
 
 # Always run the ALWAYS_SCRIPT...
 if [ -f "$ALWAYS_SCRIPT" ]; then
-    echo "($ME) $(date) Trying $ALWAYS_SCRIPT..."
-    echo "[SCRIPT BEGIN]"
-    cat "$ALWAYS_SCRIPT"
-    echo "[SCRIPT END]"
-    touch "$ALWAYS_STARTED_FILE"
-    until /var/lib/neo4j/bin/cypher-shell -u neo4j -p "$GRAPH_PASSWORD" < "$ALWAYS_SCRIPT"
-    do
-        echo "($ME) $(date) No joy with .always, waiting and trying again..."
-        sleep "$ACTION_SLEEP_TIME"
-    done
-    echo "($ME) $(date) .always script executed."
+  echo "($ME) $(date) Trying $ALWAYS_SCRIPT..."
+  echo "[SCRIPT BEGIN]"
+  cat "$ALWAYS_SCRIPT"
+  echo "[SCRIPT END]"
+  touch "$ALWAYS_STARTED_FILE"
+  until /var/lib/neo4j/bin/cypher-shell -u neo4j -p "$GRAPH_PASSWORD" < "$ALWAYS_SCRIPT"
+  do
+    echo "($ME) $(date) No joy with .always, waiting and trying again..."
+    sleep "$ACTION_SLEEP_TIME"
+  done
+  echo "($ME) $(date) .always script executed."
 else
-    echo "($ME) $(date) No .always script."
+  echo "($ME) $(date) No .always script."
 fi
 echo "($ME) $(date) Touching $ALWAYS_EXECUTED_FILE..."
 touch "$ALWAYS_EXECUTED_FILE"
