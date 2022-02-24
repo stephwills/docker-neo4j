@@ -44,12 +44,11 @@ CYPHER_PATH="$CYPHER_ROOT/cypher-script"
 echo "Making cypher path directory ($CYPHER_PATH)..."
 mkdir -p "$CYPHER_PATH"
 
-# We only pull down data (causing a potential re-build of the database
-# and indexes) if it looks like there's no graph database.
-# There's likely to be a database if the directory
-# '/data/data/databases/graph.db' exists -
-# it's created by neo4j. Pulling data when there is a database is pointless.
-if [ ! -d "/data/data/databases/graph.db" ]; then
+# We only pull down data if it looks like the sync-path has no loader script.
+# Pulling down data again is time-consuming and we insect the
+# files in the loader script later in this script...
+LOAD_SCRIPT=load-neo4j.sh
+if [ ! -f "/data/${SYNC_PATH}/${LOAD_SCRIPT}" ]; then
 
   # Remove any 'always.executed' file.
   # This will be re-created by the graph container
@@ -96,16 +95,20 @@ if [ ! -d "/data/data/databases/graph.db" ]; then
   sed 's/ignore-missing-nodes/skip-bad-relationships/' "${EXTENSION_SCRIPT}" > /tmp/load.sh
   cp /tmp/load.sh "${EXTENSION_SCRIPT}"
 
-  # Where will the database appear?
-  echo "Making ultimate data directory (/data/data)..."
-  mkdir -p "/data/data"
-
   echo "Download complete."
 
 else
 
-  echo "Skipping download - database appears to exist"
+  echo "Skipping download - ${LOAD_SCRIPT} exists"
 
+fi
+
+# Where will the database appear?
+# Only interested in this if there's a CYPHER_ROOT
+# (i.e. we're dealing with neo4j)
+if [ -n "$CYPHER_ROOT" ]; then
+  echo "Making ultimate data directory (/data/data)..."
+  mkdir -p "/data/data"
 fi
 
 # If there's 'once' or 'always' content then place it
