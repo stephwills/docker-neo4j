@@ -35,8 +35,9 @@ with the following docker command: -
         -e NEO4J_dbms_directories_logs=/graph-logs \
         -e IMPORT_DIRECTORY=/data-import \
         -e IMPORT_TO=graph \
-        -e EXTENSION_SCRIPT=/data-import/load-neo4j.sh \
-        informaticsmatters/neo4j:3.5.23
+        -e NEO4J_AUTH=neo4j/blob1234 \
+        -e GRAPH_PASSWORD=blob1234 \
+        informaticsmatters/neo4j:4.4.2
 
 ## Running post-DB cypher commands
 The image contains the ability to run a series of cypher commands
