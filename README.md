@@ -31,11 +31,11 @@ with the following docker command: -
         -p 7474:7474 \
         -p 7687:7687 \
         -e NEO4J_AUTH=neo4j/blob1234 \
+        -e NEO4J_USERNAME=neo4j \
         -e NEO4J_dbms_directories_data=/graph \
         -e NEO4J_dbms_directories_logs=/graph-logs \
         -e IMPORT_DIRECTORY=/data-import \
         -e IMPORT_TO=graph \
-        -e NEO4J_AUTH=neo4j/blob1234 \
         -e GRAPH_PASSWORD=blob1234 \
         informaticsmatters/neo4j:4.4.2
 
