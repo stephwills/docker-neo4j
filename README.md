@@ -22,8 +22,9 @@ that we'll use to mount into the container image: -
 1.  A directory to mount for the generated Neo4j database
     (i.e. `~/neo4j-container-graph`)
 
->   You may need to remove the `--ignore-missing-nodes` command option in the
-    batch loader script if you have one that was built for neo4j v3.
+>   You will need to change the `--ignore-missing-nodes` command option in the
+    batch loader script to `--skip-bad-relationships` if you have a script
+    that was compiled for neo4j v3.
 
 With directories and data in place you should be able to start the database
 with the following docker command: -
