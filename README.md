@@ -13,7 +13,8 @@ To build and push...
     $ docker-compose push
 
 ## Typical execution (Docker)
-Assuming you have: -
+Assuming you have a set of fragment graph files, start by creating three directories
+that we'll use to mount into the container image: -
 
 1.  A data directory (i.e. `~/neo4j-import`) with graph files and a pre-start
     batch loader script in it called `load-neo4j.sh`
@@ -21,23 +22,34 @@ Assuming you have: -
 1.  A directory to mount for the generated Neo4j database
     (i.e. `~/neo4j-container-graph`)
 
-...then you should be able to start the database
+>   You may need to remove the `--ignore-missing-nodes` command option in the
+    batch loader script if you have one that was built for neo4j v3.
+
+With directories and data in place you should be able to start the database
 with the following docker command: -
 
-    $ docker run --rm \
+    $ docker run --detach \
         -v $HOME/neo4j-import:/data-import \
         -v $HOME/neo4j-container-logs:/graph-logs \
-        -v $HOME/neo4j-container-graph:/graph \
+        -v $HOME/neo4j-container-graph:/data \
         -p 7474:7474 \
         -p 7687:7687 \
-        -e NEO4J_AUTH=neo4j/blob1234 \
-        -e NEO4J_USERNAME=neo4j \
-        -e NEO4J_dbms_directories_data=/graph \
-        -e NEO4J_dbms_directories_logs=/graph-logs \
+        -e CYPHER_ROOT=/data \
+        -e EXTENSION_SCRIPT=/data-import/load-neo4j.sh \
+        -e FORCE_EARLY_READINESS=yes \
+        -e GRAPH_PASSWORD=blob1234 \
         -e IMPORT_DIRECTORY=/data-import \
         -e IMPORT_TO=graph \
-        -e GRAPH_PASSWORD=blob1234 \
+        -e NEO4J_AUTH=neo4j/blob1234 \
+        -e NEO4J_USERNAME=neo4j \
+        -e NEO4J_dbms_directories_data=/data \
+        -e NEO4J_dbms_directories_logs=/graph-logs \
         informaticsmatters/neo4j:4.4.2
+
+Monitor the logs when the container's running to ensure the database build,
+which can take considerable time for non-trivial graphs, progresses without error: -
+
+    $ docker logs -f <container-id>
 
 ## Running post-DB cypher commands
 The image contains the ability to run a series of cypher commands
