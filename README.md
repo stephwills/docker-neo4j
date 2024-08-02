@@ -2,56 +2,94 @@
 
 [![CodeFactor](https://www.codefactor.io/repository/github/informaticsmatters/docker-neo4j/badge)](https://www.codefactor.io/repository/github/informaticsmatters/docker-neo4j)
 
-A specialised build of neo4j used by a number of InformaticsMatters projects.
+## Building the database
+Neo4j build for running the Fragment Network merging database.
 
-The repo contains image definitions for our Graph database and a loader
-that populates the graph from an AWS S3 path.
+First, clone the github repo and navigate into the docker-neo4j directory.
+Before building the database, build the logs and graph dirs:
 
-To build and push...
+```angular2html
+mkdir neo4j-container-logs neo4j-container-graph
+```
 
-    $ docker-compose build
-    $ docker-compose push
+**The database files will be available shortly for download.**
 
-## Typical execution (Docker)
-Assuming you have a set of fragment graph files, start by creating three directories
-that we'll use to mount into the container image: -
+The data files for the graph database are saved in `neo4j-import`.
+They are loaded using the `load-neo4j.sh` file.
+The general format for the data files is to have a csv.gz containing the node or edge data, and the header file specifies the name of the property.
 
-1.  A data directory (i.e. `~/neo4j-import`) with graph files and a pre-start
-    batch loader script in it called `load-neo4j.sh`
-1.  A directory for logs (i.e. `~/neo4j-container-logs`)
-1.  A directory to mount for the generated Neo4j database
-    (i.e. `~/neo4j-container-graph`)
+Warning: these files and the compiled database are **large**. The data files (before compilation) take up ~166 GB. The compiled database requires 2.2 TB.
 
->   You will need to change the `--ignore-missing-nodes` command option in the
-    batch loader script to `--skip-bad-relationships` if you have a script
-    that was compiled for neo4j v3.
+The database can then be built using the following commands:
 
-With directories and data in place you should be able to start the database
-with the following docker command: -
+    $ docker run --user $(id -u):$(id -g) \
+        -v ./files:/plugins
+        -v ./neo4j-import:/data-import
+        -v ./neo4j-container-logs:/graph-logs
+        -v ./neo4j-container-graph:/graph
+        -p 7474:7474
+        -p 7687:7687
+        -e NEO4J_AUTH=neo4j/blob1234
+        -e NEO4J_dbms_directories_data=/graph
+        -e NEO4J_dbms_directories_logs=/graph-logs
+        -e IMPORT_DIRECTORY=/data-import
+        -e IMPORT_TO=graph
+        -e EXTENSION_SCRIPT=/data-import/load-neo4j.sh
+        -e GRAPH_PASSWORD=blob1234
+        -e NEO4J_USERNAME=neo4j
+        -e NEO4J_dbms_security_procedures_unrestricted=algo\.\* informaticsmatters/neo4j:4.4.9
 
-    $ docker run --detach \
-        -v $HOME/neo4j-import:/data-import \
-        -v $HOME/neo4j-container-logs:/graph-logs \
-        -v $HOME/neo4j-container-graph:/data \
-        -p 7474:7474 \
-        -p 7687:7687 \
-        -e CYPHER_ROOT=/data \
-        -e EXTENSION_SCRIPT=/data-import/load-neo4j.sh \
-        -e FORCE_EARLY_READINESS=yes \
-        -e GRAPH_PASSWORD=blob1234 \
-        -e IMPORT_DIRECTORY=/data-import \
-        -e IMPORT_TO=graph \
-        -e NEO4J_AUTH=neo4j/blob1234 \
-        -e NEO4J_USERNAME=neo4j \
-        -e NEO4J_dbms_directories_data=/data \
-        -e NEO4J_dbms_directories_logs=/graph-logs \
-        informaticsmatters/neo4j:4.4.2
+
+If the database has already been built but the docker container has been stopped, you can run a new one with the pre-compiled database with: 
+
+    $ docker run --user $(id -u):$(id -g)
+        -v ./files:/plugins
+        -v ./neo4j-container-logs:/graph-logs
+        -v ./neo4j-container-graph:/graph
+        -p 7474:7474
+        -p 7687:7687
+        -e NEO4J_AUTH=neo4j/blob1234
+        -e NEO4J_dbms_directories_data=/graph
+        -e NEO4J_dbms_directories_logs=/graph-logs
+        -e GRAPH_PASSWORD=blob1234
+        -e NEO4J_USERNAME=neo4j
+        -e NEO4J_dbms_security_procedures_unrestricted=algo\.\* informaticsmatters/neo4j:4.4.9
 
 Monitor the logs when the container's running to ensure the database build,
 which can take considerable time for non-trivial graphs, progresses without error: -
 
     $ docker logs -f <container-id>
 
+## Data files
+
+The main data relevant data files are the `nodes_IDX.csv.gz` and the `edges_IDX.csv.gz` files.
+The property names are defined in `header-nodes.csv` and `header-edges.csv`.
+
+The edge properties include the SMILES of the starting node, the end node, the SMILES of the synthon (the substructure being added or removed in the transformation),
+the SMILES of the core (the remainder of the molecule; [Xe] denotes the attachment point), the number of rings, the number of atoms (including the attachment point atom) 
+and the pharmacophore fingerprint (named prop_pharmfp). In theory, you can use your own nodes and data files and use this docker to build the database.
+
+The code to build the original database is available from https://github.com/InformaticsMatters/fragmentor.
+
+## Usage with Python API
+
+To access the database using the Python API you can use the following:
+
+```angular2html
+from neo4j import GraphDatabase
+
+USERNAME = "neo4j"
+PASSWORD = "blob1234"
+driver = GraphDatabase.driver("bolt://localhost:7687", auth=(USERNAME, PASSWORD))
+```
+
+## Usage with Cypher shell
+
+To use the cypher shell, you can use the following:
+```angular2html
+docker exec -it <CONTAINER_ID> bash
+cypher-shell -u neo4j -p blob1234
+```
 ## Running post-DB cypher commands
 The image contains the ability to run a series of cypher commands
 after the database has started. It achieves this by running a provided
@@ -94,11 +132,12 @@ by comments that begin `IM-BEGIN` and end with `IM-END`.
 ## Plugins
 We've added the following plugins to the image: -
 
-1.  **Neo4j Graph Data Science Library** [gds] from the [community] section of
+1. **Neo4j Graph Data Science Library** [gds] from the [community] section of
     the download-centre
     (formally the graph-algorithms-algo library we used in our 3.5 image)
-2.  **Neo4j Apoc Procedure**, a collection of useful Neo4j Procedures
+2. **Neo4j Apoc Procedure**, a collection of useful Neo4j Procedures
     from the [apoc] distribution on Maven.
+3. **Fragment Knitwork plugin**: has custom function for calculating similarity between ph4 descriptors
 
 >   The changes to `dbms.security.procedures.unrestricted` take place in the
     **Dockerfile** where it's written to `/var/lib/neo4j/conf/neo4j.conf`.
