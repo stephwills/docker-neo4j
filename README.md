@@ -18,7 +18,7 @@ The data files for the graph database are saved in `neo4j-import`.
 They are loaded using the `load-neo4j.sh` file.
 The general format for the data files is to have a csv.gz containing the node or edge data, and the header file specifies the name of the property.
 
-Warning: these files and the compiled database are **large**. The data files (before compilation) take up ~166 GB. The compiled database requires 2.2 TB.
+Warning: these files and the compiled database are **large**. The data files (before compilation) take up ~80 GB. The compiled database requires up to ~2 TB.
 
 The database can then be built using the following commands:
 
@@ -62,14 +62,16 @@ which can take considerable time for non-trivial graphs, progresses without erro
 
 ## Data files
 
-The main data relevant data files are the `nodes_IDX.csv.gz` and the `edges_IDX.csv.gz` files.
-The property names are defined in `header-nodes.csv` and `header-edges.csv`.
+Nodes are stored in the `nodes.csv.gz` file and property names are defined in `header-nodes.csv`.
+Note: the compound vendor IDs have been removed and have been assigned a random name/index.
 
+The edges are stored in the `edges_IDX.csv.gz` files and property names are defined in and `header-edges.csv`.
 The edge properties include the SMILES of the starting node, the end node, the SMILES of the synthon (the substructure being added or removed in the transformation),
 the SMILES of the core (the remainder of the molecule; [Xe] denotes the attachment point), the number of rings, the number of atoms (including the attachment point atom) 
 and the pharmacophore fingerprint (named prop_pharmfp). In theory, you can use your own nodes and data files and use this docker to build the database.
 
 The code to build the original database is available from https://github.com/InformaticsMatters/fragmentor.
+This repo does not contain the IsoMol and Supplier nodes/edges described in https://github.com/InformaticsMatters/fragmentor. 
 
 ## Usage with Python API
 
