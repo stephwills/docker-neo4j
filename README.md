@@ -12,9 +12,10 @@ Before building the database, build the logs and graph dirs:
 mkdir neo4j-container-logs neo4j-container-graph
 ```
 
-**The database files will be available shortly for download.**
+The database files are available at https://zenodo.org/records/13501312 and https://zenodo.org/records/13509276.
+Note: the configuration is slightly different/stripped back to that described in the paper and will undergo some testing.
 
-The data files for the graph database are saved in `neo4j-import`.
+The data files for the graph database should be saved in `neo4j-import`.
 They are loaded using the `load-neo4j.sh` file.
 The general format for the data files is to have a csv.gz containing the node or edge data, and the header file specifies the name of the property.
 
